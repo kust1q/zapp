@@ -27,7 +27,7 @@ A lightweight REST API inspired by X.com, built with GO.
 - **Avatar Generation**: [govatar](https://github.com/alexeyco/govatar) — Library for generating random avatars
 
 ### Data Storage
-- **Relational Database**: [PostgreSQL](https://www.postgresql.org/) — Reliable and scalable RDBMS (recommended version: 16.11+)
+- **Relational Database**: [PostgreSQL](https://www.postgresql.org/) — Reliable and scalable RDBMS
 - **Caching / Sessions**: [Redis](https://redis.io/) — Fast key-value store for caching and session management
 - **Search & Analytics**: [Elasticsearch](https://www.elastic.co/elasticsearch/) — Full-text search and data aggregation engine
 - **Object Storage**: [MinIO S3](https://min.io/) — S3-compatible storage for files and media
@@ -38,6 +38,9 @@ A lightweight REST API inspired by X.com, built with GO.
 ### Monitoring & Observability
 - **Metrics**: [Prometheus](https://prometheus.io/) — Collection and visualization of application metrics
 - **Dashboards**: [Grafana](https://grafana.com/) — Visualization of metrics, logs, and traces
+
+### Event Streaming & Messaging
+- **Event Broker**: [Apache Kafka](https://kafka.apache.org/) — Distributed event streaming platform for asynchronous communication between services
 
 ### Infrastructure & Deployment
 - **Containerization**: [Docker](https://www.docker.com/) — Building and running containers
