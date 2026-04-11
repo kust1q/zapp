@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package tweet;
 
-option go_package = "github.com/kust1q/Zapp/backend/proto/tweet;tweetproto";
-
 // TweetService exposes read-only tweet data for integration with other services.
 service TweetService {
   // Get single tweet by ID
@@ -23,19 +21,19 @@ message GetTweetByIdRequest {
 message GetRepliesToTweetRequest {
   int64 tweet_id = 1;
   int32 limit  = 2;
-  int32 offset = 3; 
+  int32 offset = 3;
 }
 
 message GetTweetsAndRetweetsByUsernameRequest {
   string username = 1;
   int32 limit  = 2;
-  int32 offset = 3; 
+  int32 offset = 3;
 }
 
 message GetTweetLikesRequest {
   int64 tweet_id = 1;
   int32 limit  = 2;
-  int32 offset = 3; 
+  int32 offset = 3;
 }
 
 message TweetAuthor {

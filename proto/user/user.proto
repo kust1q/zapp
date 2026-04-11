@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "github.com/kust1q/Zapp/backend/proto/user;userproto";
-
 // UserService exposes read-only user and profile data for integration with other services.
 service UserService {
   // Getting user by id
@@ -29,7 +27,7 @@ message GetUserByUsernameRequest {
 message GetUserProfileRequest {
   string username = 1;
   int32 limit  = 2;
-  int32 offset = 3; 
+  int32 offset = 3;
 }
 
 message GetFollowersRequest {
@@ -41,7 +39,7 @@ message GetFollowersRequest {
 message GetFollowingsRequest {
   string username = 1;
   int32 limit  = 2;
-  int32 offset = 3; 
+  int32 offset = 3;
 }
 
 message User {

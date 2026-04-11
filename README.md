@@ -54,7 +54,12 @@ A lightweight REST API inspired by X.com, built with GO.
 
 ```
 Zapp/
-├── main/                          # Main microservice (monolith API)
+├── proto/                         # Shared protobuf contracts (source of truth)
+│   ├── search/search.proto        #   Search service contract
+│   ├── tweet/tweet.proto          #   Tweet service contract
+│   └── user/user.proto            #   User service contract
+│
+├── main/                          # Main microservice
 │   ├── cmd/app/
 │   │   └── main.go                # Entry point
 │   ├── internal/
@@ -72,7 +77,7 @@ Zapp/
 │   │   │   ├── user/              #   User management, follows
 │   │   │   ├── feed/              #   Feed generation
 │   │   │   ├── media/             #   Media handling
-│   │   │   ├── search/            #   Search orchestration (gRPC client)
+│   │   │   ├── search/            #   Search orchestration
 │   │   │   └── websocket/         #   WebSocket notifications
 │   │   ├── domain/
 │   │   │   ├── entity/            # Domain entities
@@ -88,9 +93,7 @@ Zapp/
 │   ├── migrations/                # SQL migration files
 │   ├── configs/                   # YAML config files
 │   ├── docs/                      # Swagger documentation
-│   ├── proto/                     # .proto source files
 │   ├── Dockerfile
-│   ├── Makefile
 │   └── go.mod
 │
 ├── search/                        # Search microservice
@@ -112,10 +115,9 @@ Zapp/
 │   ├── pkg/
 │   │   ├── elastic/               # Elasticsearch client helper
 │   │   ├── kafka/                 # Kafka consumer
-│   │   └── gen/proto/             # Generated protobuf
+│   │   └── gen/proto/             # Generated protobuf code (from /proto)
 │   ├── configs/                   # YAML config file
 │   ├── Dockerfile
-│   ├── Makefile
 │   └── go.mod
 │
 ├── k8s/                           # Kubernetes manifests
@@ -133,8 +135,7 @@ Zapp/
 │   ├── grafana/
 │   └── migrate/
 │
-├── docker-compose.yml             # Local development (all services)
-├── Makefile                       # Root makefile (build, docker, k8s targets)
+├── docker-compose.yml             # Local development
 ├── .dockerignore
 ├── .gitignore
 └── LICENSE

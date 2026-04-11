@@ -24,6 +24,7 @@ import (
 	tweetgrpc "github.com/kust1q/Zapp/main/internal/controllers/grpc/servers/tweet"
 	usergrpc "github.com/kust1q/Zapp/main/internal/controllers/grpc/servers/user"
 	httpHandler "github.com/kust1q/Zapp/main/internal/controllers/http/handler"
+	"github.com/kust1q/Zapp/main/internal/domain/entity"
 	s3 "github.com/kust1q/Zapp/main/internal/providers/db/minio"
 	db "github.com/kust1q/Zapp/main/internal/providers/db/postgres"
 	"github.com/kust1q/Zapp/main/internal/providers/db/redis/cache"
@@ -38,7 +39,6 @@ import (
 	"github.com/kust1q/Zapp/main/internal/service/tweets"
 	"github.com/kust1q/Zapp/main/internal/service/user" // Connection Logic
 	"github.com/kust1q/Zapp/main/internal/service/websocket"
-	"github.com/kust1q/Zapp/main/internal/domain/entity"
 	tweetproto "github.com/kust1q/Zapp/main/pkg/gen/proto/tweet"
 	userproto "github.com/kust1q/Zapp/main/pkg/gen/proto/user"
 	kafkaProvider "github.com/kust1q/Zapp/main/pkg/kafka"

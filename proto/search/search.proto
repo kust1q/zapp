@@ -2,13 +2,11 @@ syntax = "proto3";
 
 package search;
 
-option go_package = "github.com/kust1q/Zapp/backend/pkg/gen/proto/search;searchproto";
-
 // SearchService exposes read-only search functionality for tweets and users.
 service SearchService {
   // Search tweets by query (returns tweets ids)
   rpc SearchTweets(SearchTweetsRequest) returns (SearchTweetsResponse);
-  
+
   // Search users by query (returns users ids)
   rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse);
 }
