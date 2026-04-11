@@ -151,8 +151,30 @@ Zapp/
 
 ### Run with Docker
 
+1. Create `.env` file in `main/`:
+```env
+POSTGRES_USER=postgres_user
+POSTGRES_PASSWORD=postgres_password
+POSTGRES_DB=postgres_db
+CONTAINER_DB=postgres
+DB_URL="postgres://postgres_user:postgres_password@localhost:5432/postgres_db?sslmode=disable"
+
+MINIO_USER=minio_user
+MINIO_PASSWORD=minio_password
+
+REDIS_PASSWORD=redis_password
+
+HASH_SECRET=ecf5d5137aa0ce362d8f496c154ff53d31bb1b381a6a740684a987bc5e80647c
+
+PRIVATE_KEY_PATH=./certs/private.pem
+PUBLIC_KEY_PATH=./certs/public.pem
+
+KAFKA_CLUSTER_ID=HhCsSRTLRM6R30NVbW5YJQ
+```
+
+2. Start services:
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 This starts: PostgreSQL, Redis, MinIO, Elasticsearch, Kafka, the **main** API service, and the **search** microservice.
