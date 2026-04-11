@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: search-config
+  namespace: zapp
+data:
+  config.yml: |
+    app:
+      port: 50052
+    elastic:
+      host: elasticsearch
+      port: "9200"
+    grpc:
+      search_port: "50052"
+    kafka:
+      brokers:
+        - "kafka-headless.zapp.svc.cluster.local:9092"
+      topics:
+        - "tweet-events"
+        - "user-events"
+      consumer:
+        group_id: "search-service"

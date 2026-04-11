@@ -5,12 +5,11 @@
 *.swp
 *.swo
 *.swn
-*.swo
-*.swn
-*.swp
 *.DS_Store
 .env
 .env.*
-migrations/
-docs/
-configs/
+**/docs/
+**/configs/
+**/migrations/
+**/certs/
+**/coverage.out

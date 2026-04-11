@@ -4,15 +4,15 @@ metadata:
   name: zapp-ingress
   namespace: zapp
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
   - http:
       paths:
-      - path: /api/v1(/|$)(.*)
+      - path: /api/v1
         pathType: Prefix
         backend:
           service:
-            name: api-service
+            name: main-service
             port:
               number: 80

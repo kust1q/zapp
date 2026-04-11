@@ -15,8 +15,24 @@ spec:
         image: migrate/migrate:latest
         args:
           - "-path=/migrations"
-          - "-database=postgres://postgres_user:postgres_password@postgres:5432/postgres_db?sslmode=disable"
+          - "-database=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)?sslmode=disable"
           - "up"
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: POSTGRES_USER
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: POSTGRES_PASSWORD
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: POSTGRES_DB
         volumeMounts:
           - name: migrations
             mountPath: /migrations

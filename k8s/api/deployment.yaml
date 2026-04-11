@@ -1,23 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zapp-backend
+  name: zapp-main
   namespace: zapp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: zapp-backend
+      app: zapp-main
   template:
     metadata:
       labels:
-        app: zapp-backend
+        app: zapp-main
     spec:
       containers:
-      - name: backend
-        image: zapp-backend:1.0
+      - name: main
+        image: zapp-main:latest
         ports:
           - containerPort: 8080
+            name: http
+          - containerPort: 50051
+            name: grpc
         env:
           - name: POSTGRES_USER
             valueFrom:
@@ -34,8 +37,6 @@ spec:
               secretKeyRef:
                 name: db-secret
                 key: POSTGRES_DB
-          - name: DB_URL
-            value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)?sslmode=disable"
           - name: MINIO_USER
             value: "minio_user"
           - name: MINIO_PASSWORD
@@ -52,7 +53,13 @@ spec:
           - name: certs-volume
             mountPath: /app/certs
             readOnly: true
+          - name: config-volume
+            mountPath: /app/configs
+            readOnly: true
       volumes:
         - name: certs-volume
           secret:
             secretName: app-certs
+        - name: config-volume
+          configMap:
+            name: main-config

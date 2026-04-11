@@ -1,67 +1,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: search-service
+  name: zapp-search
   namespace: zapp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: search-service
+      app: zapp-search
   template:
     metadata:
       labels:
-        app: search-service
+        app: zapp-search
     spec:
       containers:
       - name: search
-        image: zapp-backend:1.0
-        command: ["/app/main-search"]
+        image: zapp-search:latest
         ports:
           - containerPort: 50052
+            name: grpc
         env:
-          - name: GRPC_SEARCH_PORT
-            value: "50052"
           - name: ELASTIC_HOST
             value: "elasticsearch"
           - name: ELASTIC_PORT
             value: "9200"
           - name: KAFKA_BROKERS
-            value: "kafka-0.kafka-headless.zapp.svc.cluster.local:9092"
-          - name: POSTGRES_USER
-            valueFrom:
-              secretKeyRef:
-                name: db-secret
-                key: POSTGRES_USER
-          - name: POSTGRES_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: db-secret
-                key: POSTGRES_PASSWORD
-          - name: POSTGRES_DB
-            valueFrom:
-              secretKeyRef:
-                name: db-secret
-                key: POSTGRES_DB
-          - name: DB_URL
-            value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)?sslmode=disable"
-          - name: MINIO_USER
-            value: "minio_user"
-          - name: MINIO_PASSWORD
-            value: "minio_password"
-          - name: REDIS_PASSWORD
-            value: "redis_password"
-          - name: HASH_SECRET
-            value: "ecf5d5137aa0ce362d8f496c154ff53d31bb1b381a6a740684a987bc5e80647c"
-          - name: PRIVATE_KEY_PATH
-            value: "/app/certs/private.pem"
-          - name: PUBLIC_KEY_PATH
-            value: "/app/certs/public.pem"
+            value: "kafka-headless.zapp.svc.cluster.local:9092"
+          - name: KAFKA_TOPICS
+            value: "tweet-events,user-events"
+          - name: KAFKA_CONSUMER_GROUP_ID
+            value: "search-service"
         volumeMounts:
-          - name: certs-volume
-            mountPath: /app/certs
+          - name: config-volume
+            mountPath: /app/configs
             readOnly: true
       volumes:
-        - name: certs-volume
-          secret:
-            secretName: app-certs
+        - name: config-volume
+          configMap:
+            name: search-config
