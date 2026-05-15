@@ -30,8 +30,5 @@ go.work.sum
 # Editor/IDE
 .vscode/
 
-# Certs (should not be committed)
-certs/
-
 # Build artifacts
 zapp-app

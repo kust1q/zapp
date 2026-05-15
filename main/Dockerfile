@@ -27,8 +27,8 @@ RUN apk add --no-cache \
 RUN mkdir -p /app/certs /app/configs
 
 COPY --from=builder /app/zapp-app /app/zapp-app
-COPY --from=builder /app/certs/*.pem /app/certs/
-COPY --from=builder /app/configs/*.yml /app/configs/
+COPY --from=builder /app/certs /app/certs
+COPY --from=builder /app/configs /app/configs
 
 RUN chmod 755 /app/zapp-app && chmod 644 /app/certs/*.pem /app/configs/*.yml
 

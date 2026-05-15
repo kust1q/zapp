@@ -17,7 +17,7 @@ RUN apk add --no-cache ca-certificates && rm -rf /var/cache/apk/*
 RUN mkdir -p /app/configs
 
 COPY --from=builder /app/zapp-search /app/zapp-search
-COPY --from=builder /app/configs/*.yml /app/configs/
+COPY --from=builder /app/configs /app/configs
 
 RUN chmod 755 /app/zapp-search && chmod 644 /app/configs/*.yml
 
