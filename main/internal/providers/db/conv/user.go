@@ -1,8 +1,8 @@
 package conv
 
 import (
-	"github.com/kust1q/Zapp/main/internal/providers/db/models"
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
+	"github.com/kust1q/Zapp/main/internal/providers/db/models"
 )
 
 func FromDomainToUserModel(user *entity.User) *models.User {

@@ -19,10 +19,9 @@ linters:
     - nakedret
     - prealloc
     - revive
+    - shadow
 
 linters-settings:
-  govet:
-    check-shadowing: true
   revive:
     rules:
       - name: blank-imports

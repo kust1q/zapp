@@ -86,7 +86,9 @@ func (h *Handler) createTweet(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "open file error"})
 			return
 		}
-		defer openedFile.Close()
+		defer func() {
+			_ = openedFile.Close()
+		}()
 		file = &entity.File{
 			File:   openedFile,
 			Header: fileHeader,
@@ -190,7 +192,9 @@ func (h *Handler) updateTweet(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "open file error"})
 			return
 		}
-		defer openedFile.Close()
+		defer func() {
+			_ = openedFile.Close()
+		}()
 		file = &entity.File{
 			File:   openedFile,
 			Header: fileHeader,
@@ -552,7 +556,9 @@ func (h *Handler) replyToTweet(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "open file error"})
 			return
 		}
-		defer openedFile.Close()
+		defer func() {
+			_ = openedFile.Close()
+		}()
 		file = &entity.File{
 			File:   openedFile,
 			Header: fileHeader,

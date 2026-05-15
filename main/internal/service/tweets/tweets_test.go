@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/kust1q/Zapp/main/internal/service/tweets"
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
 	"github.com/kust1q/Zapp/main/internal/domain/events"
 	"github.com/kust1q/Zapp/main/internal/errs"
+	"github.com/kust1q/Zapp/main/internal/service/tweets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -727,7 +727,9 @@ func TestService_CreateTweet_Success(t *testing.T) {
 	}
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	smock.ExpectBegin()
 	smock.ExpectCommit()
 	tx, _ := db.Begin()
@@ -745,7 +747,7 @@ func TestService_CreateTweet_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Equal(t, 10, res.ID)
-	
+
 	time.Sleep(100 * time.Millisecond)
 }
 
@@ -769,7 +771,9 @@ func TestService_UpdateTweet_Success(t *testing.T) {
 	mockProducer.On("Publish", mock.Anything, events.TopicTweet, mock.Anything).Return(nil)
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	smock.ExpectBegin()
 	smock.ExpectCommit()
 	tx, _ := db.Begin()
@@ -780,7 +784,7 @@ func TestService_UpdateTweet_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Equal(t, "New", res.Content)
-	
+
 	time.Sleep(100 * time.Millisecond)
 }
 
@@ -795,7 +799,9 @@ func TestService_CreateTweet_DBError(t *testing.T) {
 	tweet := &entity.Tweet{Content: "Hello", Author: &entity.SmallUser{ID: 1}}
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	smock.ExpectBegin()
 	tx, _ := db.Begin()
 
@@ -822,7 +828,9 @@ func TestService_CreateTweet_MediaError(t *testing.T) {
 	}
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	smock.ExpectBegin()
 	tx, _ := db.Begin()
 
@@ -862,7 +870,9 @@ func TestService_UpdateTweet_WithFile_Success(t *testing.T) {
 	mockProducer.On("Publish", mock.Anything, events.TopicTweet, mock.Anything).Return(nil)
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	smock.ExpectBegin()
 	smock.ExpectCommit()
 	tx, _ := db.Begin()
@@ -873,7 +883,7 @@ func TestService_UpdateTweet_WithFile_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Equal(t, "http://newurl", res.MediaUrl)
-	
+
 	time.Sleep(100 * time.Millisecond)
 }
 

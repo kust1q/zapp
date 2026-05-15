@@ -43,7 +43,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-
 	searchService := search.NewSearchService(elasticRepo)
 
 	kafkaHadler := kafka.NewSearchHandler(searchService)

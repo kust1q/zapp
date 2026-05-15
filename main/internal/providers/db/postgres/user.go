@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	conv "github.com/kust1q/Zapp/main/internal/providers/db/conv"
-	"github.com/kust1q/Zapp/main/internal/providers/db/models"
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
 	"github.com/kust1q/Zapp/main/internal/errs"
+	conv "github.com/kust1q/Zapp/main/internal/providers/db/conv"
+	"github.com/kust1q/Zapp/main/internal/providers/db/models"
 	"github.com/sirupsen/logrus"
 )
 

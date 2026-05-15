@@ -19,7 +19,7 @@ func TestConfig_Validate(t *testing.T) {
 	cfg.Postgres.Password = "pass"
 	cfg.Postgres.DBName = "db"
 	cfg.Postgres.SSLMode = "disable"
-	
+
 	cfg.Minio.Port = "9000"
 	cfg.Minio.Endpoint = "localhost"
 	cfg.Minio.BucketName = "bucket"

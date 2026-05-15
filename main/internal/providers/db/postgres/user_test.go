@@ -63,27 +63,47 @@ func (m *mockCache) InvalidateUser(ctx context.Context, userID int) error {
 }
 
 func (m *mockCache) SetTweet(ctx context.Context, tweet *models.Tweet) error { return nil }
-func (m *mockCache) GetTweet(ctx context.Context, tweetID int) (*models.Tweet, error) { return nil, nil }
-func (m *mockCache) MGetTweets(ctx context.Context, tweetIDs []int) (map[int]*models.Tweet, error) { return nil, nil }
+func (m *mockCache) GetTweet(ctx context.Context, tweetID int) (*models.Tweet, error) {
+	return nil, nil
+}
+func (m *mockCache) MGetTweets(ctx context.Context, tweetIDs []int) (map[int]*models.Tweet, error) {
+	return nil, nil
+}
 func (m *mockCache) InvalidateTweet(ctx context.Context, tweetID int) error { return nil }
-func (m *mockCache) SetUserTweetIDs(ctx context.Context, username string, ids []int) error { return nil }
-func (m *mockCache) GetUserTweetIDs(ctx context.Context, username string) ([]int, error) { return nil, nil }
-func (m *mockCache) InvalidateUserTweets(ctx context.Context, username string) error { return nil }
+func (m *mockCache) SetUserTweetIDs(ctx context.Context, username string, ids []int) error {
+	return nil
+}
+func (m *mockCache) GetUserTweetIDs(ctx context.Context, username string) ([]int, error) {
+	return nil, nil
+}
+func (m *mockCache) InvalidateUserTweets(ctx context.Context, username string) error     { return nil }
 func (m *mockCache) SetReplyIDs(ctx context.Context, parentTweetID int, ids []int) error { return nil }
-func (m *mockCache) GetReplyIDs(ctx context.Context, parentTweetID int) ([]int, error) { return nil, nil }
+func (m *mockCache) GetReplyIDs(ctx context.Context, parentTweetID int) ([]int, error) {
+	return nil, nil
+}
 func (m *mockCache) InvalidateReplies(ctx context.Context, parentTweetID int) error { return nil }
-func (m *mockCache) SetTweetLikerIDs(ctx context.Context, tweetID int, userIDs []int) error { return nil }
-func (m *mockCache) GetTweetLikerIDs(ctx context.Context, tweetID int) ([]int, error) { return nil, nil }
+func (m *mockCache) SetTweetLikerIDs(ctx context.Context, tweetID int, userIDs []int) error {
+	return nil
+}
+func (m *mockCache) GetTweetLikerIDs(ctx context.Context, tweetID int) ([]int, error) {
+	return nil, nil
+}
 func (m *mockCache) InvalidateTweetLikers(ctx context.Context, tweetID int) error { return nil }
-func (m *mockCache) SetTweetCounters(ctx context.Context, tweetID int, counters *models.Counters) error { return nil }
-func (m *mockCache) GetTweetCounters(ctx context.Context, tweetID int) (*models.Counters, error) { return nil, nil }
+func (m *mockCache) SetTweetCounters(ctx context.Context, tweetID int, counters *models.Counters) error {
+	return nil
+}
+func (m *mockCache) GetTweetCounters(ctx context.Context, tweetID int) (*models.Counters, error) {
+	return nil, nil
+}
 func (m *mockCache) InvalidateTweetCounters(ctx context.Context, tweetID int) error { return nil }
 
 func TestPostgres_GetUserByEmail_Success(t *testing.T) {
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	sqlxDB := sqlx.NewDb(db, "postgres")
-	
+
 	cacheMock := new(mockCache)
 	pg := NewPostgresDB(sqlxDB, cacheMock)
 	ctx := context.Background()
@@ -91,7 +111,7 @@ func TestPostgres_GetUserByEmail_Success(t *testing.T) {
 	email := "test@test.com"
 
 	cacheMock.On("GetUserByEmail", mock.Anything, email).Return(nil, errs.ErrCacheKeyNotFound)
-	
+
 	rows := sqlmock.NewRows([]string{"id", "username", "email", "password", "bio", "gen", "created_at", "is_superuser"}).
 		AddRow(1, "test", email, "pass", "bio", "male", time.Now(), false)
 	smock.ExpectQuery("SELECT \\* FROM users WHERE email = \\$1").WithArgs(email).WillReturnRows(rows)

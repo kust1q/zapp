@@ -14,10 +14,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/kust1q/Zapp/main/internal/config"
-	"github.com/kust1q/Zapp/main/internal/service/auth"
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
 	"github.com/kust1q/Zapp/main/internal/domain/events"
 	"github.com/kust1q/Zapp/main/internal/errs"
+	"github.com/kust1q/Zapp/main/internal/service/auth"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -249,7 +249,9 @@ func TestService_SignUp_Success(t *testing.T) {
 	mockDB.On("GetUserByUsername", mock.Anything, "newuser").Return(nil, errs.ErrUserNotFound).Once()
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	smock.ExpectBegin()
 	smock.ExpectCommit()
 	tx, _ := db.Begin()
@@ -794,7 +796,9 @@ func TestService_SignUp_CreateUserError(t *testing.T) {
 	mockDB.On("GetUserByUsername", mock.Anything, "newuser").Return(nil, errs.ErrUserNotFound).Once()
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	smock.ExpectBegin()
 	tx, _ := db.Begin()
 
@@ -835,12 +839,14 @@ func TestService_SignUp_UploadAvatarError(t *testing.T) {
 	mockDB.On("GetUserByUsername", mock.Anything, "newuser").Return(nil, errs.ErrUserNotFound).Once()
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	smock.ExpectBegin()
 	tx, _ := db.Begin()
 
 	mockDB.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-	
+
 	createdUser := &entity.User{ID: 1, Username: "newuser", Gen: "male", Credential: &entity.Credential{Email: "new@example.com"}}
 	mockDB.On("CreateUserTx", mock.Anything, tx, mock.Anything).Return(createdUser, nil).Once()
 	mockMedia.On("UploadAvatarTx", mock.Anything, 1, mock.Anything, mock.Anything, tx).Return(nil, errors.New("upload err")).Once()

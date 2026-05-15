@@ -7,9 +7,9 @@ type (
 	}
 
 	Tweet struct {
-		ID       int
-		Content  string
-		Author   *SmallUser
+		ID      int
+		Content string
+		Author  *SmallUser
 	}
 
 	User struct {

@@ -41,7 +41,7 @@ func TestDBConv_Tweet(t *testing.T) {
 	dtm := conv.FromTweetModelToDomain(&models.Tweet{ID: 2, UserID: 2})
 	assert.Equal(t, 2, dtm.ID)
 	assert.Nil(t, conv.FromTweetModelToDomain(nil))
-	
+
 	list := conv.FromTweetModelToDomainList([]models.Tweet{{ID: 1}, {ID: 2}})
 	assert.Len(t, list, 2)
 }
@@ -86,7 +86,7 @@ func TestDBConv_Media(t *testing.T) {
 	avm := conv.FromDomainToAvatarModel(&entity.Avatar{ID: 1})
 	assert.Equal(t, 1, avm.ID)
 	assert.Nil(t, conv.FromDomainToAvatarModel(nil))
-	
+
 	av := &models.Avatar{ID: 3}
 	dav := conv.FromAvatarModelToDomain(av)
 	assert.Equal(t, 3, dav.ID)

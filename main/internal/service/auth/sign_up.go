@@ -34,7 +34,9 @@ func (s *service) SignUp(ctx context.Context, req *entity.User) (*entity.User, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Credential.Password), bcrypt.DefaultCost)
 	if err != nil {

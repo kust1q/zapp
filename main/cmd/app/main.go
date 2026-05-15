@@ -19,13 +19,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/kust1q/Zapp/main/docs"
 	"github.com/kust1q/Zapp/main/internal/config"
 	tweetgrpc "github.com/kust1q/Zapp/main/internal/controllers/grpc/servers/tweet"
 	usergrpc "github.com/kust1q/Zapp/main/internal/controllers/grpc/servers/user"
 	httpHandler "github.com/kust1q/Zapp/main/internal/controllers/http/handler"
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
-	s3 "github.com/kust1q/Zapp/main/internal/providers/db/minio"
+	mnProvider "github.com/kust1q/Zapp/main/internal/providers/db/minio"
 	db "github.com/kust1q/Zapp/main/internal/providers/db/postgres"
 	"github.com/kust1q/Zapp/main/internal/providers/db/redis/cache"
 	"github.com/kust1q/Zapp/main/internal/providers/db/redis/tokens"
@@ -41,10 +42,10 @@ import (
 	"github.com/kust1q/Zapp/main/internal/service/websocket"
 	tweetproto "github.com/kust1q/Zapp/main/pkg/gen/proto/tweet"
 	userproto "github.com/kust1q/Zapp/main/pkg/gen/proto/user"
-	kafkaProvider "github.com/kust1q/Zapp/main/pkg/kafka"
-	mn "github.com/kust1q/Zapp/main/pkg/minio"
-	pg "github.com/kust1q/Zapp/main/pkg/postgres"
-	rs "github.com/kust1q/Zapp/main/pkg/redis"
+	kafkaPkg "github.com/kust1q/Zapp/main/pkg/kafka"
+	minioPkg "github.com/kust1q/Zapp/main/pkg/minio"
+	postgresPkg "github.com/kust1q/Zapp/main/pkg/postgres"
+	redisPkg "github.com/kust1q/Zapp/main/pkg/redis"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -53,29 +54,28 @@ import (
 )
 
 func main() {
-	logrus.SetFormatter(new(logrus.JSONFormatter))
-
 	if err := config.InitConfig(); err != nil {
-		logrus.WithError(err).Fatal("error initializing config")
+		logrus.Fatalf("failed to initialize config: %v", err)
 	}
 	cfg := config.Get()
 	if err := cfg.Validate(); err != nil {
 		logrus.WithError(err).Fatal("invalid configuration")
 	}
 
-	redisClient, err := rs.NewRedisClient(&cfg.Redis)
+	redisClient, err := redisPkg.NewRedisClient(&cfg.Redis)
 	if err != nil {
 		logrus.WithError(err).Fatal("failed to initialize redis client")
 	}
 	cache := cache.NewCache(redisClient, cfg.Cache.DefaultTtl, cfg.Cache.CountersTtl)
 
-	postgresConnect, err := pg.NewPostgresConnect(&cfg.Postgres)
+	var postgresConnect *sqlx.DB
+	postgresConnect, err = postgresPkg.NewPostgresConnect(&cfg.Postgres)
 	if err != nil {
 		logrus.WithError(err).Fatal("failed to initialize pg connect")
 	}
 	pgDB := db.NewPostgresDB(postgresConnect, cache)
 
-	minioClient, err := mn.NewMinioClient(&cfg.Minio)
+	minioClient, err := minioPkg.NewMinioClient(&cfg.Minio)
 	if err != nil {
 		logrus.WithError(err).Fatal("failed to initialize minio client")
 	}
@@ -98,17 +98,18 @@ func main() {
 			ForceMimeType: "image/gif",
 		},
 		entity.MediaTypeAudio: {
-			MaxSize:     64 * 1024 * 1024,
-			AllowedMime: []string{"audio/mpeg", "audio/wav", "audio/x-wav", "audio/ogg", "audio/flac", "audio/aac", "audio/x-m4a", "audio/webm"},
-			AllowedExt:  []string{".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"},
+			MaxSize:     128 * 1024 * 1024,
+			AllowedMime: []string{"audio/mpeg", "audio/wav", "audio/ogg", "audio/flac", "audio/aac", "audio/mp4", "audio/x-m4a", "audio/webm"},
+			AllowedExt:  []string{".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a", ".webm"},
 		},
 	}
-	minioDB := s3.NewMinioDB(minioClient, &cfg.Minio, mediaTypeMap)
 
-	kafkaProducer := kafkaProvider.NewEventProducer(&cfg.Kafka)
+	minioDB := mnProvider.NewMinioDB(minioClient, &cfg.Minio, mediaTypeMap)
+
+	kafkaProducer := kafkaPkg.NewEventProducer(&cfg.Kafka)
 	defer func() {
 		if err := kafkaProducer.Close(); err != nil {
-			logrus.Errorf("Error closing Kafka producer: %v", err)
+			logrus.Errorf("Error closing kafka producer: %v", err)
 		}
 	}()
 
@@ -119,10 +120,11 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("failed to create grpc client: %v", err)
 	}
-	defer searchConn.Close()
+	defer func() {
+		_ = searchConn.Close()
+	}()
 
 	searchClient := searchClient.NewClientSearchService(searchConn)
-	defer searchConn.Close()
 
 	wsHub := wsProvider.NewHub()
 	go wsHub.Run()

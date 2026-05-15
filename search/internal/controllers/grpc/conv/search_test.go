@@ -10,7 +10,7 @@ import (
 
 func TestConv_Search(t *testing.T) {
 	ids := []int{1, 2}
-	
+
 	uResp := conv.ToSearchUserProtoResponse(ids)
 	assert.Equal(t, int64(1), uResp.UserIds[0])
 	assert.Equal(t, int64(2), uResp.UserIds[1])

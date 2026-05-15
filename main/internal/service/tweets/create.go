@@ -18,7 +18,9 @@ func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (*entity
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	createdTweet, err := s.db.CreateTweetTx(ctx, tx, tweet)
 	if err != nil {

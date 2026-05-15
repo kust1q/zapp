@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/kust1q/Zapp/main/internal/domain/entity"
 	conv "github.com/kust1q/Zapp/main/internal/providers/db/conv"
 	"github.com/kust1q/Zapp/main/internal/providers/db/models"
-	"github.com/kust1q/Zapp/main/internal/domain/entity"
 	"github.com/lib/pq"
 )
 

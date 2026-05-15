@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kust1q/Zapp/main/internal/service/user"
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
 	"github.com/kust1q/Zapp/main/internal/domain/events"
 	"github.com/kust1q/Zapp/main/internal/errs"
+	"github.com/kust1q/Zapp/main/internal/service/user"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

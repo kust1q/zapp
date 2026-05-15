@@ -214,4 +214,3 @@ func TestHandler_GetAvatar_Error(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 }
-

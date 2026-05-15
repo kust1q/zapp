@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kust1q/Zapp/main/internal/providers/db/models"
 	"github.com/kust1q/Zapp/main/internal/errs"
+	"github.com/kust1q/Zapp/main/internal/providers/db/models"
 	"github.com/redis/go-redis/v9"
 )
 

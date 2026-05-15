@@ -146,7 +146,9 @@ func TestService_UploadAndAttachTweetMediaTx_Success(t *testing.T) {
 	filename := "test.jpg"
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	tx, _ := db.Begin()
 
 	objMock.On("Upload", mock.Anything, mock.Anything, entity.MediaTypeImage, filename).Return("path/to/media", "image/jpeg", nil)
@@ -171,7 +173,9 @@ func TestService_UploadAvatarTx_Success(t *testing.T) {
 	filename := "avatar.png"
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	tx, _ := db.Begin()
 
 	objMock.On("Upload", mock.Anything, mock.Anything, entity.MediaTypeImage, filename).Return("path/to/avatar", "image/png", nil)
@@ -217,7 +221,7 @@ func TestService_DeleteAvatar_Success(t *testing.T) {
 
 	err := srv.DeleteAvatar(ctx, 1)
 	assert.NoError(t, err)
-	
+
 	time.Sleep(100 * time.Millisecond)
 }
 
@@ -376,7 +380,9 @@ func TestService_DetectMediaType(t *testing.T) {
 	}
 
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	tx, _ := db.Begin()
 	smock.ExpectRollback()
 
@@ -405,9 +411,11 @@ func TestService_UploadAndAttachTweetMediaTx_VariousTypes(t *testing.T) {
 	objMock := new(mockObject)
 	srv := media.NewMediaService(dbMock, objMock)
 	ctx := context.Background()
-	
+
 	db, smock, _ := sqlmock.New()
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 	tx, _ := db.Begin()
 	smock.ExpectRollback()
 
@@ -478,7 +486,7 @@ func TestService_CleanUpMedia_Error(t *testing.T) {
 	objMock.On("Remove", mock.Anything, "path").Return(errors.New("remove err"))
 
 	dbMock.On("GetMediaUrlsByUserID", mock.Anything, 1).Return([]string{"path"}, nil)
-	
+
 	err := srv.DeleteMediasByUserID(ctx, 1)
 	assert.NoError(t, err)
 }

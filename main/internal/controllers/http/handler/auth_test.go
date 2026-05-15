@@ -2,7 +2,7 @@ package http_test
 
 import (
 	"bytes"
-	
+
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -117,7 +117,6 @@ func TestHandler_SignUp_Error(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
 
-
 func TestHandler_SignIn_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	c := gomock.NewController(t)
@@ -125,7 +124,7 @@ func TestHandler_SignIn_Success(t *testing.T) {
 
 	mockAuth := mocks.NewMockauthService(c)
 	h := ctrl.NewHandler(mockAuth, nil, nil, nil, nil, nil, nil, nil)
-	
+
 	mockAuth.EXPECT().GetRefreshTTL().Return(time.Hour).AnyTimes()
 
 	_ = h.InitRouters()

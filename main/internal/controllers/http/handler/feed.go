@@ -50,7 +50,7 @@ func (h *Handler) getFeed(c *gin.Context) {
 		})
 		return
 	}
-	logrus.WithField("user_id", userID.(int)).Info("successfuly get feed")
+	logrus.WithField("user_id", userID.(int)).Info("successfully get feed")
 	c.JSON(http.StatusOK, conv.FromDomainToTweetListResponse(feed))
 }
 
@@ -84,6 +84,6 @@ func (h *Handler) getDefaultFeed(c *gin.Context) {
 		})
 		return
 	}
-	logrus.Info("successfuly get feed")
+	logrus.Info("successfully get feed")
 	c.JSON(http.StatusOK, conv.FromDomainToTweetListResponse(feed))
 }

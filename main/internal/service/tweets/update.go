@@ -33,7 +33,9 @@ func (s *service) UpdateTweet(ctx context.Context, req *entity.Tweet) (*entity.T
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	exTweet.Content = req.Content
 	exTweet.UpdatedAt = time.Now()

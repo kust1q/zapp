@@ -224,14 +224,3 @@ func (r *elasticRepository) performSearch(ctx context.Context, index string, que
 
 	return ids, nil
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -31,7 +31,7 @@ func TestHandler_CreateTweet_Success(t *testing.T) {
 	token := "valid-token"
 
 	mockAuth.EXPECT().VerifyAccessToken(token).Return(userID, nil)
-	
+
 	tweet := &entity.Tweet{ID: 10, Content: "Hello", Author: &entity.SmallUser{ID: userID}}
 	mockTweets.EXPECT().CreateTweet(gomock.Any(), gomock.Any()).Return(tweet, nil)
 
@@ -39,7 +39,7 @@ func TestHandler_CreateTweet_Success(t *testing.T) {
 	req, _ := http.NewRequest(http.MethodPost, "/api/v1/protected/tweets", bytes.NewBufferString(`{"content":"Hello"}`))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
-	
+
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusCreated, w.Code)
