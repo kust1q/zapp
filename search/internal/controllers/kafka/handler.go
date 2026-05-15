@@ -63,11 +63,10 @@ func (h *eventSearchHandler) handleTweet(ctx context.Context, data []byte) error
 	return nil
 }
 
-func (h *eventSearchHandler) handleUser(ctx context.Context, data []byte) error {
+func (h *eventSearchHandler) handleUser(ctx context.Context, data []byte) (err error) {
 	var meta struct {
 		EventType events.EventType `json:"event_type"`
 	}
-	var err error
 	if err = json.Unmarshal(data, &meta); err != nil {
 		return err
 	}

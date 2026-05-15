@@ -19,8 +19,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *service) SignUp(ctx context.Context, req *entity.User) (*entity.User, error) {
-	var err error
+func (s *service) SignUp(ctx context.Context, req *entity.User) (user *entity.User, err error) {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
@@ -31,7 +30,8 @@ func (s *service) SignUp(ctx context.Context, req *entity.User) (*entity.User, e
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	tx, err := s.db.BeginTx(ctx)
+	var tx *sql.Tx
+	tx, err = s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -39,12 +39,13 @@ func (s *service) SignUp(ctx context.Context, req *entity.User) (*entity.User, e
 		_ = tx.Rollback()
 	}()
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Credential.Password), bcrypt.DefaultCost)
+	var hashedPassword []byte
+	hashedPassword, err = bcrypt.GenerateFromPassword([]byte(req.Credential.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("password hashing failed: %w", err)
 	}
 
-	user := entity.User{
+	userEntity := entity.User{
 		Username:    req.Username,
 		Bio:         req.Bio,
 		Gen:         req.Gen,
@@ -56,18 +57,19 @@ func (s *service) SignUp(ctx context.Context, req *entity.User) (*entity.User, e
 		},
 	}
 
-	createdUser, err := s.db.CreateUserTx(ctx, tx, &user)
+	var createdUser *entity.User
+	createdUser, err = s.db.CreateUserTx(ctx, tx, &userEntity)
 	if err != nil {
 		return nil, fmt.Errorf("user creation failed: %w", err)
 	}
 
-	avatar, err := s.generateAndUploadAvatar(ctx, createdUser.ID, createdUser.Username, createdUser.Gen, tx)
-
+	var avatar *entity.Avatar
+	avatar, err = s.generateAndUploadAvatar(ctx, createdUser.ID, createdUser.Username, createdUser.Gen, tx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate or upload avatar: %w", err)
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit transaction failed: %w", err)
 	}
 
@@ -113,29 +115,14 @@ func (s *service) generateAndUploadAvatar(ctx context.Context, userID int, usern
 	if err != nil {
 		return nil, fmt.Errorf("avatar generation failed: %w", err)
 	}
-	/*
-		var avatarBuffer bytes.Buffer
-		if err := png.Encode(&avatarBuffer, img); err != nil {
-			return entity.User{}, err
-		}
-	*/
+
 	var buf bytes.Buffer
 	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 80}); err != nil {
 		return nil, fmt.Errorf("JPEG encoding failed: %w", err)
 	}
 	avatarSaveName := uuid.New().String() + ".jpg"
 
-	avatar, err := s.media.UploadAvatarTx(ctx, userID, &buf, avatarSaveName, tx)
-	if err != nil {
-		return nil, fmt.Errorf("avatar upload failed: %w", err)
-	}
-	return &entity.Avatar{
-		ID:        avatar.ID,
-		UserID:    avatar.UserID,
-		Path:      avatar.Path,
-		MimeType:  avatar.MimeType,
-		SizeBytes: avatar.SizeBytes,
-	}, nil
+	return s.media.UploadAvatarTx(ctx, userID, &buf, avatarSaveName, tx)
 }
 
 func (s *service) checkUserExists(ctx context.Context, email, username string) error {

@@ -108,11 +108,12 @@ func (s *service) DeleteTweetMedia(ctx context.Context, tweetID, userID int) err
 	return nil
 }
 
-func (s *service) UploadAvatarTx(ctx context.Context, userID int, file io.Reader, filename string, tx *sql.Tx) (*entity.Avatar, error) {
+func (s *service) UploadAvatarTx(ctx context.Context, userID int, file io.Reader, filename string, tx *sql.Tx) (res *entity.Avatar, err error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	mt, err := s.detectMediaType(filename)
+	var mt entity.MediaType
+	mt, err = s.detectMediaType(filename)
 	if err != nil {
 		return nil, err
 	}

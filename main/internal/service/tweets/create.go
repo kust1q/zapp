@@ -2,6 +2,7 @@ package tweets
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -10,11 +11,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (*entity.Tweet, error) {
+func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (res *entity.Tweet, err error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	tx, err := s.db.BeginTx(ctx)
+	var tx *sql.Tx
+	tx, err = s.db.BeginTx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -22,7 +24,8 @@ func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (*entity
 		_ = tx.Rollback()
 	}()
 
-	createdTweet, err := s.db.CreateTweetTx(ctx, tx, tweet)
+	var createdTweet *entity.Tweet
+	createdTweet, err = s.db.CreateTweetTx(ctx, tx, tweet)
 	if err != nil {
 		return nil, fmt.Errorf("user creation failed: %w", err)
 	}
@@ -37,7 +40,7 @@ func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (*entity
 
 	createdTweet.MediaUrl = mediaUrl
 
-	response, err := s.BuildEntityTweetToResponse(ctx, createdTweet)
+	res, err = s.BuildEntityTweetToResponse(ctx, createdTweet)
 	if err != nil {
 		return nil, err
 	}
@@ -62,5 +65,5 @@ func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (*entity
 		}
 	}()
 
-	return response, nil
+	return res, nil
 }

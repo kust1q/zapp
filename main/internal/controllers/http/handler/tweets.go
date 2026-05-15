@@ -550,7 +550,8 @@ func (h *Handler) replyToTweet(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "impossible reply to empty tweet"})
 		return
 	} else if fileHeader != nil {
-		openedFile, err := fileHeader.Open()
+		var openedFile multipart.File
+		openedFile, err = fileHeader.Open()
 		if err != nil {
 			logrus.WithError(err).Error("failed to reply to tweet - open file error")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "open file error"})
@@ -567,7 +568,8 @@ func (h *Handler) replyToTweet(c *gin.Context) {
 		file = nil
 	}
 
-	tweet, err := h.tweetService.CreateTweet(c.Request.Context(), conv.FromTweetRequestToDomain(userID.(int), &parentTweetID, file, &req))
+	var tweet *entity.Tweet
+	tweet, err = h.tweetService.CreateTweet(c.Request.Context(), conv.FromTweetRequestToDomain(userID.(int), &parentTweetID, file, &req))
 
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
