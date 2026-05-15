@@ -16,7 +16,6 @@ const (
 )
 
 var (
-	// Счетчик HTTP-запросов
 	httpRequestsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "http_requests_total",
@@ -25,7 +24,6 @@ var (
 		[]string{"method", "endpoint", "status"},
 	)
 
-	// Гистограмма времени обработки
 	httpRequestDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "http_request_duration_seconds",

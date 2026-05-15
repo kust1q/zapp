@@ -9,7 +9,6 @@ import (
 
 type (
 	db interface {
-		//user
 		GetUserByID(ctx context.Context, userID int) (*entity.User, error)
 		GetUserByUsername(ctx context.Context, username string) (*entity.User, error)
 		UpdateUserBio(ctx context.Context, userID int, bio string) error
@@ -18,7 +17,6 @@ type (
 		UnfollowUser(ctx context.Context, followerID, followingID int) error
 		GetFollowersIds(ctx context.Context, username string, limit, offset int) ([]int, error)
 		GetFollowingsIds(ctx context.Context, username string, limit, offset int) ([]int, error)
-		//tweets
 		GetTweetsAndRetweetsByUsername(ctx context.Context, username string, limit, offset int) ([]entity.Tweet, error)
 		GetCounts(ctx context.Context, tweetID int) (*entity.Counters, error)
 	}

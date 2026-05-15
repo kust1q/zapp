@@ -6,7 +6,6 @@ import (
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
 )
 
-// Requests
 func FromUpdateBioRequestToDomain(userID int, req *request.UpdateBio) *entity.UpdateBio {
 	if req == nil {
 		return nil
@@ -18,7 +17,6 @@ func FromUpdateBioRequestToDomain(userID int, req *request.UpdateBio) *entity.Up
 	}
 }
 
-// Responses
 func FromDomainToSmallUserResponse(user *entity.SmallUser) *response.SmallUser {
 	if user == nil {
 		return nil

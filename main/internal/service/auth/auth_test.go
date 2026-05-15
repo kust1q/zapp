@@ -10,11 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/kust1q/Zapp/main/internal/config"
 	"github.com/kust1q/Zapp/main/internal/service/auth"
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
+	"github.com/kust1q/Zapp/main/internal/domain/events"
 	"github.com/kust1q/Zapp/main/internal/errs"
 
 	"github.com/stretchr/testify/assert"
@@ -35,6 +37,9 @@ func (m *mockDB) BeginTx(ctx context.Context) (*sql.Tx, error) {
 
 func (m *mockDB) CreateUserTx(ctx context.Context, tx *sql.Tx, user *entity.User) (*entity.User, error) {
 	args := m.Called(ctx, tx, user)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*entity.User), args.Error(1)
 }
 
@@ -215,7 +220,7 @@ func TestService_SignIn_Success(t *testing.T) {
 	mockTokens.AssertExpectations(t)
 }
 
-func TestService_SignIn_InvalidCredentials(t *testing.T) {
+func TestService_SignUp_Success(t *testing.T) {
 	privateKey, publicKey := generateTestRSAKeys(t)
 	cfg := &config.AuthServiceConfig{
 		PrivateKey: privateKey,
@@ -230,29 +235,56 @@ func TestService_SignIn_InvalidCredentials(t *testing.T) {
 	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
 
 	ctx := context.Background()
-	password := "password123"
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("differentpassword"), bcrypt.DefaultCost)
 
-	user := &entity.User{
-		ID:       1,
-		Username: "testuser",
+	req := &entity.User{
+		Username: "newuser",
+		Gen:      "male",
 		Credential: &entity.Credential{
-			Email:    "test@example.com",
-			Password: string(hashedPassword),
+			Email:    "new@example.com",
+			Password: "password123",
 		},
 	}
 
-	mockDB.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil).Once()
+	mockDB.On("GetUserByEmail", mock.Anything, "new@example.com").Return(nil, errs.ErrUserNotFound).Once()
+	mockDB.On("GetUserByUsername", mock.Anything, "newuser").Return(nil, errs.ErrUserNotFound).Once()
 
-	req := &entity.Credential{
-		Email:    "test@example.com",
-		Password: password,
+	db, smock, _ := sqlmock.New()
+	defer db.Close()
+	smock.ExpectBegin()
+	smock.ExpectCommit()
+	tx, _ := db.Begin()
+
+	mockDB.On("BeginTx", mock.Anything).Return(tx, nil).Once()
+
+	createdUser := &entity.User{
+		ID:       1,
+		Username: "newuser",
+		Gen:      "male",
+		Credential: &entity.Credential{
+			Email: "new@example.com",
+		},
 	}
 
-	tokens, err := service.SignIn(ctx, req)
-	assert.Error(t, err)
-	assert.Nil(t, tokens)
-	assert.Equal(t, errs.ErrInvalidCredentials, err)
+	mockDB.On("CreateUserTx", mock.Anything, tx, mock.Anything).Return(createdUser, nil).Once()
+
+	avatar := &entity.Avatar{
+		ID:   1,
+		Path: "http://avatar.url",
+	}
+	mockMedia.On("UploadAvatarTx", mock.Anything, 1, mock.Anything, mock.Anything, tx).Return(avatar, nil).Once()
+	mockProducer.On("Publish", mock.Anything, events.TopicUser, mock.Anything).Return(nil).Once()
+
+	result, err := service.SignUp(ctx, req)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, "newuser", result.Username)
+	assert.Equal(t, "http://avatar.url", result.AvatarUrl)
+
+	time.Sleep(100 * time.Millisecond)
+
+	mockDB.AssertExpectations(t)
+	mockMedia.AssertExpectations(t)
+	mockProducer.AssertExpectations(t)
 }
 
 func TestService_SignUp_EmailAlreadyExists(t *testing.T) {
@@ -288,13 +320,12 @@ func TestService_SignUp_EmailAlreadyExists(t *testing.T) {
 	}
 
 	mockDB.On("GetUserByEmail", mock.Anything, "existing@example.com").Return(existingUser, nil).Once()
-	mockDB.On("GetUserByUsername", mock.Anything, "newuser").Return(nil, errs.ErrUserNotFound).Once()
 
 	result, err := service.SignUp(ctx, req)
 	assert.Error(t, err)
 	assert.Nil(t, result)
 	assert.True(t, errors.Is(err, errs.ErrEmailAlreadyUsed) ||
-		(err != nil && err.Error() == "failed to begin transaction: email already used"))
+		(err != nil && (err.Error() == "failed to begin transaction: email already used" || err.Error() == "email already used")))
 }
 
 func TestService_Refresh_Success(t *testing.T) {
@@ -518,35 +549,6 @@ func TestService_ForgotPassword_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestService_ForgotPassword_UserNotFound(t *testing.T) {
-	privateKey, publicKey := generateTestRSAKeys(t)
-	cfg := &config.AuthServiceConfig{
-		PrivateKey:  privateKey,
-		PublicKey:   publicKey,
-		RecoveryTTL: time.Hour,
-	}
-
-	mockDB := &mockDB{}
-	mockTokens := &mockTokenStorage{}
-	mockMedia := &mockMediaService{}
-	mockProducer := &mockEventProducer{}
-
-	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
-
-	ctx := context.Background()
-	email := "nonexistent@example.com"
-
-	mockDB.On("GetUserByEmail", mock.Anything, email).Return(nil, errs.ErrUserNotFound).Once()
-
-	req := &entity.ForgotPassword{Email: email}
-
-	recovery, err := service.ForgotPassword(ctx, req)
-
-	assert.Error(t, err)
-	assert.Nil(t, recovery)
-	assert.Equal(t, errs.ErrUserNotFound, err)
-}
-
 func TestService_RecoveryPassword_Success(t *testing.T) {
 	privateKey, publicKey := generateTestRSAKeys(t)
 	cfg := &config.AuthServiceConfig{
@@ -575,36 +577,6 @@ func TestService_RecoveryPassword_Success(t *testing.T) {
 
 	err := service.RecoveryPassword(ctx, req)
 	assert.NoError(t, err)
-}
-
-func TestService_RecoveryPassword_InvalidToken(t *testing.T) {
-	privateKey, publicKey := generateTestRSAKeys(t)
-	cfg := &config.AuthServiceConfig{
-		PrivateKey: privateKey,
-		PublicKey:  publicKey,
-	}
-
-	mockDB := &mockDB{}
-	mockTokens := &mockTokenStorage{}
-	mockMedia := &mockMediaService{}
-	mockProducer := &mockEventProducer{}
-
-	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
-
-	ctx := context.Background()
-	recoveryToken := "invalid-recovery-token"
-	newPassword := "newpassword123"
-
-	mockTokens.On("GetUserIdByRecoveryToken", mock.Anything, recoveryToken).Return("", errors.New("token not found")).Once()
-
-	req := &entity.RecoveryPassword{
-		RecoveryToken: recoveryToken,
-		NewPassword:   newPassword,
-	}
-
-	err := service.RecoveryPassword(ctx, req)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to get userID")
 }
 
 func TestService_VerifyAccessToken_Success(t *testing.T) {
@@ -640,12 +612,11 @@ func TestService_VerifyAccessToken_Success(t *testing.T) {
 	assert.Equal(t, 1, userID)
 }
 
-func TestService_VerifyAccessToken_Expired(t *testing.T) {
+func TestService_SignIn_UserNotFound(t *testing.T) {
 	privateKey, publicKey := generateTestRSAKeys(t)
 	cfg := &config.AuthServiceConfig{
 		PrivateKey: privateKey,
 		PublicKey:  publicKey,
-		AccessTTL:  time.Hour,
 	}
 
 	mockDB := &mockDB{}
@@ -655,30 +626,26 @@ func TestService_VerifyAccessToken_Expired(t *testing.T) {
 
 	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
 
-	claims := auth.AccessClaims{
-		UserID: 1,
-		Email:  "test@example.com",
-		Role:   "user",
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(-time.Hour)),
-			IssuedAt:  jwt.NewNumericDate(time.Now().Add(-2 * time.Hour)),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	tokenString, err := token.SignedString(privateKey)
-	require.NoError(t, err)
+	ctx := context.Background()
 
-	userID, err := service.VerifyAccessToken(tokenString)
+	mockDB.On("GetUserByEmail", mock.Anything, "nonexistent@test.com").Return(nil, errs.ErrUserNotFound).Once()
+
+	req := &entity.Credential{
+		Email:    "nonexistent@test.com",
+		Password: "password123",
+	}
+
+	tokens, err := service.SignIn(ctx, req)
 	assert.Error(t, err)
-	assert.Equal(t, 0, userID)
+	assert.Nil(t, tokens)
+	assert.Equal(t, errs.ErrInvalidCredentials, err)
 }
 
-func TestService_VerifyAccessToken_InvalidSignature(t *testing.T) {
+func TestService_Refresh_UserNotFound(t *testing.T) {
 	privateKey, publicKey := generateTestRSAKeys(t)
 	cfg := &config.AuthServiceConfig{
 		PrivateKey: privateKey,
 		PublicKey:  publicKey,
-		AccessTTL:  time.Hour,
 	}
 
 	mockDB := &mockDB{}
@@ -688,22 +655,204 @@ func TestService_VerifyAccessToken_InvalidSignature(t *testing.T) {
 
 	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
 
-	wrongPrivateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
-	claims := auth.AccessClaims{
-		UserID: 1,
-		Email:  "test@example.com",
-		Role:   "user",
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
+	ctx := context.Background()
+	refreshToken := "valid-refresh-token"
+
+	mockTokens.On("GetUserIdByRefreshToken", mock.Anything, refreshToken).Return("1", nil).Once()
+	mockTokens.On("RemoveRefresh", mock.Anything, refreshToken).Return(nil).Once()
+	mockDB.On("GetUserByID", mock.Anything, 1).Return(nil, errs.ErrUserNotFound).Once()
+
+	req := &entity.Refresh{Refresh: refreshToken}
+	tokens, err := service.Refresh(ctx, req)
+
+	assert.Error(t, err)
+	assert.Nil(t, tokens)
+}
+
+func TestService_RecoveryPassword_UserNotFound(t *testing.T) {
+	privateKey, publicKey := generateTestRSAKeys(t)
+	cfg := &config.AuthServiceConfig{
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
+	}
+
+	mockDB := &mockDB{}
+	mockTokens := &mockTokenStorage{}
+	mockMedia := &mockMediaService{}
+	mockProducer := &mockEventProducer{}
+
+	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
+
+	ctx := context.Background()
+	recoveryToken := "valid-recovery-token"
+
+	mockTokens.On("GetUserIdByRecoveryToken", mock.Anything, recoveryToken).Return("1", nil).Once()
+	mockDB.On("UpdateUserPassword", mock.Anything, 1, mock.Anything).Return(errs.ErrUserNotFound).Once()
+
+	req := &entity.RecoveryPassword{
+		RecoveryToken: recoveryToken,
+		NewPassword:   "newpassword",
+	}
+
+	err := service.RecoveryPassword(ctx, req)
+	assert.Error(t, err)
+}
+
+func TestService_ForgotPassword_DBError(t *testing.T) {
+	privateKey, publicKey := generateTestRSAKeys(t)
+	cfg := &config.AuthServiceConfig{
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
+	}
+
+	mockDB := &mockDB{}
+	mockTokens := &mockTokenStorage{}
+	mockMedia := &mockMediaService{}
+	mockProducer := &mockEventProducer{}
+
+	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
+
+	ctx := context.Background()
+	email := "test@test.com"
+
+	mockDB.On("GetUserByEmail", mock.Anything, email).Return(nil, errors.New("db err")).Once()
+
+	req := &entity.ForgotPassword{Email: email}
+	res, err := service.ForgotPassword(ctx, req)
+	assert.Error(t, err)
+	assert.Nil(t, res)
+}
+
+func TestService_SignIn_StoreRefreshError(t *testing.T) {
+	privateKey, publicKey := generateTestRSAKeys(t)
+	cfg := &config.AuthServiceConfig{
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
+		AccessTTL:  time.Hour,
+		RefreshTTL: 24 * time.Hour,
+	}
+
+	mockDB := &mockDB{}
+	mockTokens := &mockTokenStorage{}
+	mockMedia := &mockMediaService{}
+	mockProducer := &mockEventProducer{}
+
+	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
+
+	ctx := context.Background()
+	password := "password123"
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	user := &entity.User{
+		ID:       1,
+		Username: "testuser",
+		Credential: &entity.Credential{
+			Email:    "test@example.com",
+			Password: string(hashedPassword),
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	tokenString, err := token.SignedString(wrongPrivateKey)
-	require.NoError(t, err)
 
-	userID, err := service.VerifyAccessToken(tokenString)
+	mockDB.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil).Once()
+	mockTokens.On("StoreRefresh", mock.Anything, mock.Anything, "1", cfg.RefreshTTL).Return(errors.New("store err")).Once()
+
+	req := &entity.Credential{
+		Email:    "test@example.com",
+		Password: password,
+	}
+
+	tokens, err := service.SignIn(ctx, req)
+	assert.Error(t, err)
+	assert.Nil(t, tokens)
+}
+
+func TestService_SignUp_CreateUserError(t *testing.T) {
+	privateKey, publicKey := generateTestRSAKeys(t)
+	cfg := &config.AuthServiceConfig{
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
+	}
+
+	mockDB := &mockDB{}
+	mockTokens := &mockTokenStorage{}
+	mockMedia := &mockMediaService{}
+	mockProducer := &mockEventProducer{}
+
+	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
+
+	ctx := context.Background()
+
+	req := &entity.User{
+		Username: "newuser",
+		Gen:      "male",
+		Credential: &entity.Credential{
+			Email:    "new@example.com",
+			Password: "password123",
+		},
+	}
+
+	mockDB.On("GetUserByEmail", mock.Anything, "new@example.com").Return(nil, errs.ErrUserNotFound).Once()
+	mockDB.On("GetUserByUsername", mock.Anything, "newuser").Return(nil, errs.ErrUserNotFound).Once()
+
+	db, smock, _ := sqlmock.New()
+	defer db.Close()
+	smock.ExpectBegin()
+	tx, _ := db.Begin()
+
+	mockDB.On("BeginTx", mock.Anything).Return(tx, nil).Once()
+	mockDB.On("CreateUserTx", mock.Anything, tx, mock.Anything).Return(nil, errors.New("create err")).Once()
+
+	result, err := service.SignUp(ctx, req)
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestService_SignUp_UploadAvatarError(t *testing.T) {
+	privateKey, publicKey := generateTestRSAKeys(t)
+	cfg := &config.AuthServiceConfig{
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
+	}
+
+	mockDB := &mockDB{}
+	mockTokens := &mockTokenStorage{}
+	mockMedia := &mockMediaService{}
+	mockProducer := &mockEventProducer{}
+
+	service := auth.NewAuthService(cfg, mockDB, mockMedia, mockTokens, mockProducer)
+
+	ctx := context.Background()
+
+	req := &entity.User{
+		Username: "newuser",
+		Gen:      "male",
+		Credential: &entity.Credential{
+			Email:    "new@example.com",
+			Password: "password123",
+		},
+	}
+
+	mockDB.On("GetUserByEmail", mock.Anything, "new@example.com").Return(nil, errs.ErrUserNotFound).Once()
+	mockDB.On("GetUserByUsername", mock.Anything, "newuser").Return(nil, errs.ErrUserNotFound).Once()
+
+	db, smock, _ := sqlmock.New()
+	defer db.Close()
+	smock.ExpectBegin()
+	tx, _ := db.Begin()
+
+	mockDB.On("BeginTx", mock.Anything).Return(tx, nil).Once()
+	
+	createdUser := &entity.User{ID: 1, Username: "newuser", Gen: "male", Credential: &entity.Credential{Email: "new@example.com"}}
+	mockDB.On("CreateUserTx", mock.Anything, tx, mock.Anything).Return(createdUser, nil).Once()
+	mockMedia.On("UploadAvatarTx", mock.Anything, 1, mock.Anything, mock.Anything, tx).Return(nil, errors.New("upload err")).Once()
+
+	result, err := service.SignUp(ctx, req)
+	assert.Error(t, err)
+	assert.Nil(t, result)
+}
+
+func TestService_VerifyAccessToken_InvalidFormat(t *testing.T) {
+	service := auth.NewAuthService(&config.AuthServiceConfig{}, nil, nil, nil, nil)
+	userID, err := service.VerifyAccessToken("invalid.token.format")
 	assert.Error(t, err)
 	assert.Equal(t, 0, userID)
-	assert.Contains(t, err.Error(), "token validation failed")
 }

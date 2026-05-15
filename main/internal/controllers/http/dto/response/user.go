@@ -29,7 +29,6 @@ type (
 		CreatedAt   time.Time `json:"created_at"`
 	}
 
-	// For docs
 	SmallUserList struct {
 		Users []SmallUser `json:"users"`
 	}

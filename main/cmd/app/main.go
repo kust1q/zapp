@@ -30,14 +30,14 @@ import (
 	"github.com/kust1q/Zapp/main/internal/providers/db/redis/cache"
 	"github.com/kust1q/Zapp/main/internal/providers/db/redis/tokens"
 	searchClient "github.com/kust1q/Zapp/main/internal/providers/search"
-	wsProvider "github.com/kust1q/Zapp/main/internal/providers/websocket" // Infrastructure
+	wsProvider "github.com/kust1q/Zapp/main/internal/providers/websocket"
 	"github.com/kust1q/Zapp/main/internal/service/auth"
 	"github.com/kust1q/Zapp/main/internal/service/feed"
 	"github.com/kust1q/Zapp/main/internal/service/media"
 	"github.com/kust1q/Zapp/main/internal/service/notification"
 	searchService "github.com/kust1q/Zapp/main/internal/service/search"
 	"github.com/kust1q/Zapp/main/internal/service/tweets"
-	"github.com/kust1q/Zapp/main/internal/service/user" // Connection Logic
+	"github.com/kust1q/Zapp/main/internal/service/user"
 	"github.com/kust1q/Zapp/main/internal/service/websocket"
 	tweetproto "github.com/kust1q/Zapp/main/pkg/gen/proto/tweet"
 	userproto "github.com/kust1q/Zapp/main/pkg/gen/proto/user"
@@ -55,7 +55,6 @@ import (
 func main() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
-	// --- Configs ---
 	if err := config.InitConfig(); err != nil {
 		logrus.WithError(err).Fatal("error initializing config")
 	}

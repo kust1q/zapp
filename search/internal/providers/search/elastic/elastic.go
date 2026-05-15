@@ -225,110 +225,13 @@ func (r *elasticRepository) performSearch(ctx context.Context, index string, que
 	return ids, nil
 }
 
-// func (r *elasticRepository) InitIndices(ctx context.Context) error {
-// 	settings := `
-//     {
-//         "settings": {
-//             "index": {
-//                 "max_ngram_diff": 10
-//             },
-//             "analysis": {
-//                 "analyzer": {
-//                     "ngram_analyzer": {
-//                         "tokenizer": "ngram_tokenizer",
-//                         "filter": ["lowercase"]
-//                     }
-//                 },
-//                 "tokenizer": {
-//                     "ngram_tokenizer": {
-//                         "type": "ngram",
-//                         "min_gram": 3,
-//                         "max_gram": 10,
-//                         "token_chars": ["letter", "digit"]
-//                     }
-//                 }
-//             }
-//         },`
 
-// 	usersBody := settings + `
-//         "mappings": {
-//             "properties": {
-//                 "username": {
-//                     "type": "text",
-//                     "analyzer": "ngram_analyzer",
-//                     "search_analyzer": "standard"
-//                 },
-//                 "bio": {
-//                     "type": "text",
-//                     "analyzer": "ngram_analyzer",
-//                     "search_analyzer": "standard"
-//                 },
-//                 "user_id": { "type": "integer" }
-//             }
-//         }
-//     }`
 
-// 	tweetsBody := settings + `
-//         "mappings": {
-//             "properties": {
-//                 "content": {
-//                     "type": "text",
-//                     "analyzer": "ngram_analyzer",
-//                     "search_analyzer": "standard"
-//                 },
-//                 "username": {
-//                     "type": "text",
-//                     "analyzer": "ngram_analyzer",
-//                     "search_analyzer": "standard"
-//                 },
-//                 "user_id": { "type": "integer" }
-//             }
-//         }
-//     }`
 
-// 	if err := r.createIndexIfNotExists(ctx, IndexUsers, usersBody); err != nil {
-// 		return err
-// 	}
-// 	if err := r.createIndexIfNotExists(ctx, IndexTweets, tweetsBody); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
 
-// func (r *elasticRepository) createIndexIfNotExists(ctx context.Context, indexName, mapping string) error {
-// 	exists, err := r.client.Indices.Exists(
-// 		[]string{indexName},
-// 		r.client.Indices.Exists.WithContext(ctx),
-// 	)
-// 	if err != nil {
-// 		return fmt.Errorf("check index %s exists error: %w", indexName, err)
-// 	}
-// 	defer exists.Body.Close()
 
-// 	if exists.StatusCode == 200 {
-// 		return nil
-// 	}
 
-// 	if exists.StatusCode == 404 {
-// 		logrus.Infof("Creating index: %s", indexName)
 
-// 		res, err := r.client.Indices.Create(
-// 			indexName,
-// 			r.client.Indices.Create.WithBody(strings.NewReader(mapping)),
-// 			r.client.Indices.Create.WithContext(ctx),
-// 		)
-// 		if err != nil {
-// 			return fmt.Errorf("create index %s error: %w", indexName, err)
-// 		}
-// 		defer res.Body.Close()
 
-// 		if res.IsError() {
-// 			return fmt.Errorf("create index %s response error: %s", indexName, res.String())
-// 		}
 
-// 		logrus.Infof("Index %s created successfully", indexName)
-// 		return nil
-// 	}
 
-// 	return fmt.Errorf("unexpected status checking index %s: %s", indexName, exists.Status())
-// }

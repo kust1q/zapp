@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	maxMemoryForm = 1024 * 1024 * 1024 // 1 GB
+	maxMemoryForm = 1024 * 1024 * 1024
 )
 
 // createTweet creates a new tweet for authenticated user.

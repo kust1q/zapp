@@ -22,7 +22,6 @@ type (
 		LikeCount    int `json:"like_count"`
 	}
 
-	// For docs
 	TweetList struct {
 		Tweets []Tweet `json:"tweets"`
 	}

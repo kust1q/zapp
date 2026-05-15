@@ -8,7 +8,6 @@ import (
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
 )
 
-// Requests
 func FromTweetRequestToDomain(userID int, parent_tweet_id *int, file *entity.File, req *request.Tweet) *entity.Tweet {
 	if req == nil {
 		return nil
@@ -43,7 +42,6 @@ func FromTweetUpdateRequestToDomain(userID, tweetID int, file *entity.File, req 
 	}
 }
 
-// Responses
 func FromDomainToTweetResponse(tweet *entity.Tweet) *response.Tweet {
 	if tweet == nil {
 		return nil

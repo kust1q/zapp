@@ -8,7 +8,6 @@ import (
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
 )
 
-// Requests
 func FromSignUpRequestToDomain(req *request.SignUp) *entity.User {
 	if req == nil {
 		return nil
@@ -82,7 +81,6 @@ func FromRecoveryPasswordRequestToDomain(req *request.RecoveryPassword) *entity.
 	}
 }
 
-// Responses
 func FromDomainToSignUpResponse(user *entity.User) *response.SignUp {
 	if user == nil {
 		return nil

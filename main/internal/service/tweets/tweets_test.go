@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"io"
+	"mime/multipart"
 	"testing"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/kust1q/Zapp/main/internal/service/tweets"
 	"github.com/kust1q/Zapp/main/internal/domain/entity"
 	"github.com/kust1q/Zapp/main/internal/domain/events"
@@ -28,11 +30,17 @@ func (m *mockTweetStorage) BeginTx(ctx context.Context) (*sql.Tx, error) {
 
 func (m *mockTweetStorage) CreateTweetTx(ctx context.Context, tx *sql.Tx, tweet *entity.Tweet) (*entity.Tweet, error) {
 	args := m.Called(ctx, tx, tweet)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*entity.Tweet), args.Error(1)
 }
 
 func (m *mockTweetStorage) CreateTweet(ctx context.Context, tweet *entity.Tweet) (*entity.Tweet, error) {
 	args := m.Called(ctx, tweet)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*entity.Tweet), args.Error(1)
 }
 
@@ -47,6 +55,9 @@ func (m *mockTweetStorage) GetTweetById(ctx context.Context, tweetID int) (*enti
 
 func (m *mockTweetStorage) UpdateTweet(ctx context.Context, tweet *entity.Tweet) (*entity.Tweet, error) {
 	args := m.Called(ctx, tweet)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*entity.Tweet), args.Error(1)
 }
 
@@ -77,11 +88,17 @@ func (m *mockTweetStorage) DeleteRetweet(ctx context.Context, userID, retweetID 
 
 func (m *mockTweetStorage) GetRepliesToTweet(ctx context.Context, parentTweetID, limit, offset int) ([]entity.Tweet, error) {
 	args := m.Called(ctx, parentTweetID, limit, offset)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]entity.Tweet), args.Error(1)
 }
 
 func (m *mockTweetStorage) GetTweetsAndRetweetsByUsername(ctx context.Context, username string, limit, offset int) ([]entity.Tweet, error) {
 	args := m.Called(ctx, username, limit, offset)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).([]entity.Tweet), args.Error(1)
 }
 
@@ -371,7 +388,7 @@ func TestService_GetTweetsAndRetweetsByUsername_Success(t *testing.T) {
 
 	ctx := context.Background()
 
-	tweets := []entity.Tweet{
+	tweetsList := []entity.Tweet{
 		{
 			ID:      1,
 			Content: "Tweet 1",
@@ -399,7 +416,7 @@ func TestService_GetTweetsAndRetweetsByUsername_Success(t *testing.T) {
 		LikeCount:    0,
 	}
 
-	mockDB.On("GetTweetsAndRetweetsByUsername", mock.Anything, "testuser", 10, 0).Return(tweets, nil).Once()
+	mockDB.On("GetTweetsAndRetweetsByUsername", mock.Anything, "testuser", 10, 0).Return(tweetsList, nil).Once()
 	mockDB.On("GetUserByID", mock.Anything, 1).Return(author, nil).Times(2)
 	mockDB.On("GetCounts", mock.Anything, mock.AnythingOfType("int")).Return(counters, nil).Times(2)
 	mockMedia.On("GetAvatarUrlByUserID", mock.Anything, 1).Return("/avatars/1.jpg", nil).Times(2)
@@ -694,4 +711,192 @@ func TestService_BuildEntityTweetToResponse_UserNotFound(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to get tweet author")
 
 	mockDB.AssertExpectations(t)
+}
+
+func TestService_CreateTweet_Success(t *testing.T) {
+	mockDB := new(mockTweetStorage)
+	mockMedia := new(mockMediaService)
+	mockProducer := new(mockEventProducer)
+
+	srv := tweets.NewTweetService(mockDB, mockMedia, mockProducer)
+	ctx := context.Background()
+
+	tweet := &entity.Tweet{
+		Content: "Hello",
+		Author:  &entity.SmallUser{ID: 1},
+	}
+
+	db, smock, _ := sqlmock.New()
+	defer db.Close()
+	smock.ExpectBegin()
+	smock.ExpectCommit()
+	tx, _ := db.Begin()
+
+	mockDB.On("BeginTx", mock.Anything).Return(tx, nil)
+	mockDB.On("CreateTweetTx", mock.Anything, tx, tweet).Return(&entity.Tweet{ID: 10, Content: "Hello", Author: &entity.SmallUser{ID: 1}}, nil)
+	mockDB.On("GetUserByID", mock.Anything, 1).Return(&entity.User{ID: 1, Username: "test"}, nil)
+	mockMedia.On("GetAvatarUrlByUserID", mock.Anything, 1).Return("http://avatar", nil)
+	mockMedia.On("GetMediaUrlByTweetID", mock.Anything, 10).Return("", nil)
+	mockDB.On("GetCounts", mock.Anything, 10).Return(&entity.Counters{}, nil)
+	mockProducer.On("Publish", mock.Anything, events.TopicTweet, mock.Anything).Return(nil)
+
+	res, err := srv.CreateTweet(ctx, tweet)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, 10, res.ID)
+	
+	time.Sleep(100 * time.Millisecond)
+}
+
+func TestService_UpdateTweet_Success(t *testing.T) {
+	mockDB := new(mockTweetStorage)
+	mockMedia := new(mockMediaService)
+	mockProducer := new(mockEventProducer)
+
+	srv := tweets.NewTweetService(mockDB, mockMedia, mockProducer)
+	ctx := context.Background()
+
+	oldTweet := &entity.Tweet{ID: 10, Content: "Old", Author: &entity.SmallUser{ID: 1}}
+	newTweet := &entity.Tweet{ID: 10, Content: "New", Author: &entity.SmallUser{ID: 1}}
+
+	mockDB.On("GetTweetById", mock.Anything, 10).Return(oldTweet, nil)
+	mockDB.On("UpdateTweet", mock.Anything, mock.Anything).Return(newTweet, nil)
+	mockDB.On("GetUserByID", mock.Anything, 1).Return(&entity.User{ID: 1, Username: "test"}, nil)
+	mockMedia.On("GetAvatarUrlByUserID", mock.Anything, 1).Return("http://avatar", nil)
+	mockMedia.On("GetMediaUrlByTweetID", mock.Anything, 10).Return("", nil)
+	mockDB.On("GetCounts", mock.Anything, 10).Return(&entity.Counters{}, nil)
+	mockProducer.On("Publish", mock.Anything, events.TopicTweet, mock.Anything).Return(nil)
+
+	db, smock, _ := sqlmock.New()
+	defer db.Close()
+	smock.ExpectBegin()
+	smock.ExpectCommit()
+	tx, _ := db.Begin()
+	mockDB.On("BeginTx", mock.Anything).Return(tx, nil)
+
+	res, err := srv.UpdateTweet(ctx, newTweet)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, "New", res.Content)
+	
+	time.Sleep(100 * time.Millisecond)
+}
+
+func TestService_CreateTweet_DBError(t *testing.T) {
+	mockDB := new(mockTweetStorage)
+	mockMedia := new(mockMediaService)
+	mockProducer := new(mockEventProducer)
+
+	srv := tweets.NewTweetService(mockDB, mockMedia, mockProducer)
+	ctx := context.Background()
+
+	tweet := &entity.Tweet{Content: "Hello", Author: &entity.SmallUser{ID: 1}}
+
+	db, smock, _ := sqlmock.New()
+	defer db.Close()
+	smock.ExpectBegin()
+	tx, _ := db.Begin()
+
+	mockDB.On("BeginTx", mock.Anything).Return(tx, nil)
+	mockDB.On("CreateTweetTx", mock.Anything, tx, tweet).Return(nil, errors.New("db error"))
+
+	res, err := srv.CreateTweet(ctx, tweet)
+	assert.Error(t, err)
+	assert.Nil(t, res)
+}
+
+func TestService_CreateTweet_MediaError(t *testing.T) {
+	mockDB := new(mockTweetStorage)
+	mockMedia := new(mockMediaService)
+	mockProducer := new(mockEventProducer)
+
+	srv := tweets.NewTweetService(mockDB, mockMedia, mockProducer)
+	ctx := context.Background()
+
+	tweet := &entity.Tweet{
+		Content: "Hello",
+		Author:  &entity.SmallUser{ID: 1},
+		File:    &entity.File{Header: &multipart.FileHeader{Filename: "test.jpg"}},
+	}
+
+	db, smock, _ := sqlmock.New()
+	defer db.Close()
+	smock.ExpectBegin()
+	tx, _ := db.Begin()
+
+	mockDB.On("BeginTx", mock.Anything).Return(tx, nil)
+	mockDB.On("CreateTweetTx", mock.Anything, tx, mock.Anything).Return(&entity.Tweet{ID: 10}, nil)
+	mockMedia.On("UploadAndAttachTweetMediaTx", mock.Anything, mock.Anything, mock.Anything, mock.Anything, tx).Return("", errors.New("upload err"))
+
+	res, err := srv.CreateTweet(ctx, tweet)
+	assert.Error(t, err)
+	assert.Nil(t, res)
+}
+
+func TestService_UpdateTweet_WithFile_Success(t *testing.T) {
+	mockDB := new(mockTweetStorage)
+	mockMedia := new(mockMediaService)
+	mockProducer := new(mockEventProducer)
+
+	srv := tweets.NewTweetService(mockDB, mockMedia, mockProducer)
+	ctx := context.Background()
+
+	oldTweet := &entity.Tweet{ID: 10, Content: "Old", Author: &entity.SmallUser{ID: 1}}
+	newTweet := &entity.Tweet{
+		ID:      10,
+		Content: "New",
+		Author:  &entity.SmallUser{ID: 1},
+		File:    &entity.File{Header: &multipart.FileHeader{Filename: "test.jpg"}},
+	}
+
+	mockDB.On("GetTweetById", mock.Anything, 10).Return(oldTweet, nil)
+	mockDB.On("UpdateTweet", mock.Anything, mock.Anything).Return(newTweet, nil)
+	mockDB.On("GetUserByID", mock.Anything, 1).Return(&entity.User{ID: 1, Username: "test"}, nil)
+	mockMedia.On("GetAvatarUrlByUserID", mock.Anything, 1).Return("http://avatar", nil)
+	mockMedia.On("DeleteTweetMedia", mock.Anything, 10, 1).Return(nil)
+	mockMedia.On("UploadAndAttachTweetMediaTx", mock.Anything, 10, mock.Anything, mock.Anything, mock.Anything).Return("http://newurl", nil)
+	mockMedia.On("GetMediaUrlByTweetID", mock.Anything, 10).Return("http://newurl", nil)
+	mockDB.On("GetCounts", mock.Anything, 10).Return(&entity.Counters{}, nil)
+	mockProducer.On("Publish", mock.Anything, events.TopicTweet, mock.Anything).Return(nil)
+
+	db, smock, _ := sqlmock.New()
+	defer db.Close()
+	smock.ExpectBegin()
+	smock.ExpectCommit()
+	tx, _ := db.Begin()
+	mockDB.On("BeginTx", mock.Anything).Return(tx, nil)
+
+	res, err := srv.UpdateTweet(ctx, newTweet)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, "http://newurl", res.MediaUrl)
+	
+	time.Sleep(100 * time.Millisecond)
+}
+
+func TestService_GetTweetsAndRetweetsByUsername_Error(t *testing.T) {
+	mockDB := new(mockTweetStorage)
+	srv := tweets.NewTweetService(mockDB, nil, nil)
+	ctx := context.Background()
+
+	mockDB.On("GetTweetsAndRetweetsByUsername", mock.Anything, "test", 10, 0).Return(nil, errors.New("db err"))
+
+	res, err := srv.GetTweetsAndRetweetsByUsername(ctx, "test", 10, 0)
+	assert.Error(t, err)
+	assert.Nil(t, res)
+}
+
+func TestService_GetRepliesToTweet_Error(t *testing.T) {
+	mockDB := new(mockTweetStorage)
+	srv := tweets.NewTweetService(mockDB, nil, nil)
+	ctx := context.Background()
+
+	mockDB.On("GetRepliesToTweet", mock.Anything, 1, 10, 0).Return(nil, errors.New("db err"))
+
+	res, err := srv.GetRepliesToTweet(ctx, 1, 10, 0)
+	assert.Error(t, err)
+	assert.Nil(t, res)
 }

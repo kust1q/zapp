@@ -171,10 +171,23 @@ func (h *Handler) refresh(c *gin.Context) {
 		true,
 	)
 
+	oldRefresh := refreshToken
+	if len(oldRefresh) > 10 {
+		oldRefresh = oldRefresh[:10] + "..."
+	}
+	newRefresh := tokens.Refresh.Refresh
+	if len(newRefresh) > 10 {
+		newRefresh = newRefresh[:10] + "..."
+	}
+	accessT := tokens.Access.Access
+	if len(accessT) > 10 {
+		accessT = accessT[:10] + "..."
+	}
+
 	logrus.WithFields(logrus.Fields{
-		"old_refresh": refreshToken[:10] + "...",
-		"new_refresh": tokens.Refresh.Refresh[:10] + "...",
-		"access":      tokens.Access.Access[:10] + "...",
+		"old_refresh": oldRefresh,
+		"new_refresh": newRefresh,
+		"access":      accessT,
 	}).Info("tokens refreshed")
 	c.JSON(http.StatusOK, conv.FromDomainToAccessResponse(tokens))
 }
@@ -198,7 +211,7 @@ func (h *Handler) signOut(c *gin.Context) {
 
 	if err := h.authService.SignOut(c.Request.Context(), conv.FromRefreshRequestToDomain(refreshToken)); err != nil {
 		logrus.WithError(err).Error("failed to sign out - internal server error")
-		c.SetCookie(RefreshTokenCookieName, "", -1, "/", "", false, true) // Удалить cookie
+		c.SetCookie(RefreshTokenCookieName, "", -1, "/", "", false, true)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "internal server error",
 		})
@@ -207,7 +220,11 @@ func (h *Handler) signOut(c *gin.Context) {
 
 	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
 
-	logrus.WithField("refresh", refreshToken[:10]+"...").Info("user signed out")
+	displayToken := refreshToken
+	if len(displayToken) > 10 {
+		displayToken = displayToken[:10] + "..."
+	}
+	logrus.WithField("refresh", displayToken).Info("user signed out")
 	c.JSON(http.StatusOK, gin.H{
 		"message": "successfully signed out",
 	})

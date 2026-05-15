@@ -43,10 +43,6 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// if err := elasticRepo.InitIndices(ctx); err != nil {
-	// 	logrus.Fatalf("failed to init elastic indices: %v", err)
-	// }
-	// logrus.Info("Elastic indices initialized successfully")
 
 	searchService := search.NewSearchService(elasticRepo)
 

@@ -86,6 +86,7 @@ func (h *Handler) getTweetMedia(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "internal server error",
 		})
+		return
 	}
 	logrus.WithFields(logrus.Fields{
 		"tweet_id": tweetID,
@@ -121,6 +122,7 @@ func (h *Handler) getAvatar(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "internal server error",
 		})
+		return
 	}
 	logrus.WithFields(logrus.Fields{
 		"user_id": userID,
