@@ -536,7 +536,7 @@ func (h *Handler) replyToTweet(c *gin.Context) {
 			return
 		}
 	} else {
-		if err := c.BindJSON(&req); err != nil {
+		if err = c.BindJSON(&req); err != nil {
 			logrus.WithError(err).Error("failed to reply to tweet - invalid request body")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 			return

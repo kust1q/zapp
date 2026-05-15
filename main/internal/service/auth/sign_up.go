@@ -20,13 +20,14 @@ import (
 )
 
 func (s *service) SignUp(ctx context.Context, req *entity.User) (*entity.User, error) {
+	var err error
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
 	req.Credential.Email = strings.ToLower(strings.TrimSpace(req.Credential.Email))
 	req.Username = strings.TrimSpace(req.Username)
 
-	if err := s.checkUserExists(ctx, req.Credential.Email, req.Username); err != nil {
+	if err = s.checkUserExists(ctx, req.Credential.Email, req.Username); err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
