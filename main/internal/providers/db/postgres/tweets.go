@@ -22,9 +22,7 @@ func (pg *PostgresDB) CreateTweet(ctx context.Context, tweet *entity.Tweet) (*en
 
 	query := fmt.Sprintf("INSERT INTO %s (user_id, parent_tweet_id, content, created_at, updated_at) VALUES ($1, $2, $3, $4, $5) RETURNING id", TweetsTable)
 	var id int
-	var err error
-	err = pg.db.QueryRowContext(ctx, query, tweetModel.UserID, tweetModel.ParentTweetID, tweetModel.Content, tweetModel.CreatedAt, tweetModel.UpdatedAt).Scan(&id)
-	if err != nil {
+	if err := pg.db.QueryRowContext(ctx, query, tweetModel.UserID, tweetModel.ParentTweetID, tweetModel.Content, tweetModel.CreatedAt, tweetModel.UpdatedAt).Scan(&id); err != nil {
 		return nil, err
 	}
 	tweetModel.ID = id
@@ -56,8 +54,7 @@ func (pg *PostgresDB) CreateTweetTx(ctx context.Context, tx *sql.Tx, tweet *enti
 
 	query := fmt.Sprintf("INSERT INTO %s (user_id, parent_tweet_id, content, created_at, updated_at) VALUES ($1, $2, $3, $4, $5) RETURNING id", TweetsTable)
 	var id int
-	var err error
-	err = tx.QueryRowContext(ctx, query, tweetModel.UserID, tweetModel.ParentTweetID, tweetModel.Content, tweetModel.CreatedAt, tweetModel.UpdatedAt).Scan(&id)
+	err := tx.QueryRowContext(ctx, query, tweetModel.UserID, tweetModel.ParentTweetID, tweetModel.Content, tweetModel.CreatedAt, tweetModel.UpdatedAt).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +112,7 @@ func (pg *PostgresDB) UpdateTweet(ctx context.Context, tweet *entity.Tweet) (*en
 	query := fmt.Sprintf("UPDATE %s SET content = $1, updated_at = $2 WHERE id = $3 RETURNING content, updated_at", TweetsTable)
 	var content string
 	var updatedAt time.Time
-	var err error
-	err = pg.db.QueryRowContext(ctx, query, tweet.Content, tweet.UpdatedAt, tweet.ID).Scan(&content, &updatedAt)
+	err := pg.db.QueryRowContext(ctx, query, tweet.Content, tweet.UpdatedAt, tweet.ID).Scan(&content, &updatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -442,8 +438,7 @@ func (pg *PostgresDB) GetLikes(ctx context.Context, tweetID, limit, offset int) 
 	}
 
 	res := make([]entity.SmallUser, 0, len(rows))
-	var ids []int
-	ids = make([]int, 0, len(rows))
+	ids := make([]int, 0, len(rows))
 
 	for _, row := range rows {
 		res = append(res, entity.SmallUser{

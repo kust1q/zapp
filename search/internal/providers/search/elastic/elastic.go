@@ -53,7 +53,9 @@ func (r *elasticRepository) DeleteTweet(ctx context.Context, tweetID int) error 
 	if err != nil {
 		return fmt.Errorf("elastic request error: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.StatusCode == 404 {
 		logrus.WithField("tweet_id", tweetID).Info("tweet not found in elastic during deletion")
@@ -77,7 +79,9 @@ func (r *elasticRepository) DeleteUser(ctx context.Context, userID int) error {
 	if err != nil {
 		return fmt.Errorf("elastic request error: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.StatusCode == 404 {
 		logrus.WithField("user_id", userID).Info("user not found in elastic during deletion")
@@ -114,7 +118,9 @@ func (r *elasticRepository) DeleteTweetsByUserID(ctx context.Context, userID int
 	if err != nil {
 		return fmt.Errorf("delete by query req error: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.IsError() {
 		return fmt.Errorf("delete by query error: %s", res.String())
@@ -140,7 +146,9 @@ func (r *elasticRepository) indexDocument(ctx context.Context, index string, id 
 	if err != nil {
 		return fmt.Errorf("elastic request error: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.IsError() {
 		return fmt.Errorf("elastic error indexing %s: %s", index, res.String())
@@ -191,7 +199,9 @@ func (r *elasticRepository) performSearch(ctx context.Context, index string, que
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.IsError() {
 		return nil, fmt.Errorf("search error: %s", res.String())

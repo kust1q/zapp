@@ -23,11 +23,11 @@ func (s *service) UpdatePassword(ctx context.Context, req *entity.UpdatePassword
 		return fmt.Errorf("failed to find user: %w", err)
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Credential.Password), []byte(req.OldPassword)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Credential.Password), []byte(req.OldPassword)); err != nil {
 		return fmt.Errorf("invalid password")
 	}
 
-	if err := s.tokens.CloseAllSessions(ctx, strconv.Itoa(req.UserID)); err != nil {
+	if err = s.tokens.CloseAllSessions(ctx, strconv.Itoa(req.UserID)); err != nil {
 		return fmt.Errorf("failed to close sessions: %w", err)
 	}
 	newHashPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)

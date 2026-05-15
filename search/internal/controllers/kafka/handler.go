@@ -92,6 +92,5 @@ func (h *eventSearchHandler) handleUser(ctx context.Context, data []byte) (err e
 		return h.searchService.DeleteUserWithTweets(ctx, ev.ID)
 	}
 
-
 	return nil
 }

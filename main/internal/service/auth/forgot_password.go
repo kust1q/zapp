@@ -26,7 +26,7 @@ func (s *service) ForgotPassword(ctx context.Context, req *entity.ForgotPassword
 		return nil, err
 	}
 
-	if err := s.tokens.CloseAllSessions(ctx, strconv.Itoa(user.ID)); err != nil {
+	if err = s.tokens.CloseAllSessions(ctx, strconv.Itoa(user.ID)); err != nil {
 		return nil, fmt.Errorf("failed to close sessions: %w", err)
 	}
 

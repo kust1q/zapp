@@ -28,7 +28,7 @@ func (s *service) Refresh(ctx context.Context, req *entity.Refresh) (*entity.Tok
 		return nil, fmt.Errorf("failed to get refresh token: %w", err)
 	}
 
-	if err := s.tokens.RemoveRefresh(ctx, req.Refresh); err != nil {
+	if err = s.tokens.RemoveRefresh(ctx, req.Refresh); err != nil {
 		logrus.Warnf("failed to delete refresh token: %v", err)
 	}
 

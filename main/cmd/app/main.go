@@ -111,9 +111,8 @@ func main() {
 
 	minioDB := mnProvider.NewMinioDB(minioClient, &cfg.Minio, mediaTypeMap)
 
-	var kafkaProducer *kafkaPkg.EventProducer
-	kafkaProducer = kafkaPkg.NewEventProducer(&cfg.Kafka)
-	
+	kafkaProducer := kafkaPkg.NewEventProducer(&cfg.Kafka)
+
 	defer func() {
 		if taskErr := kafkaProducer.Close(); taskErr != nil {
 			logrus.Errorf("Error closing kafka producer: %v", taskErr)
@@ -174,8 +173,7 @@ func main() {
 		}
 	}()
 
-	var lis net.Listener
-	lis, err = net.Listen("tcp4", fmt.Sprintf("0.0.0.0:%s", cfg.GRPC.IntegrationPort))
+	lis, err := net.Listen("tcp4", fmt.Sprintf("0.0.0.0:%s", cfg.GRPC.IntegrationPort))
 	if err != nil {
 		logrus.Fatalf("failed to listen for grpc: %v", err)
 	}

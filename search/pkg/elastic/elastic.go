@@ -21,7 +21,9 @@ func NewElasticClient(addresses []string) (*elasticsearch.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting info response: %w", err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.IsError() {
 		return nil, fmt.Errorf("error: %s", res.String())

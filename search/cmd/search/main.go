@@ -50,8 +50,8 @@ func main() {
 
 	go func() {
 		logrus.Info("Starting Kafka consumer...")
-		if err := consumer.Run(ctx, kafkaHadler.Handle); err != nil {
-			logrus.Error("kafka consumer failed", err)
+		if taskErr := consumer.Run(ctx, kafkaHadler.Handle); taskErr != nil {
+			logrus.Error("kafka consumer failed", taskErr)
 		}
 	}()
 

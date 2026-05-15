@@ -26,8 +26,7 @@ func (pg *PostgresDB) CreateUserTx(ctx context.Context, tx *sql.Tx, user *entity
         RETURNING id`, UserTable)
 
 	var id int
-	var err error
-	err = tx.QueryRowContext(ctx, query,
+	err := tx.QueryRowContext(ctx, query,
 		userModel.Username, userModel.Email, userModel.Password,
 		userModel.Bio, userModel.Gen, userModel.CreatedAt,
 		userModel.IsActive, userModel.IsSuperuser).Scan(&id)

@@ -38,7 +38,7 @@ func (s *service) SignIn(ctx context.Context, req *entity.Credential) (*entity.T
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Credential.Password), []byte(req.Password)); err != nil {
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Credential.Password), []byte(req.Password)); err != nil {
 		return nil, errs.ErrInvalidCredentials
 	}
 
