@@ -47,6 +47,8 @@ import (
 	postgresPkg "github.com/kust1q/Zapp/main/pkg/postgres"
 	redisPkg "github.com/kust1q/Zapp/main/pkg/redis"
 	_ "github.com/lib/pq"
+	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -54,15 +56,17 @@ import (
 )
 
 func main() {
-	if err := config.InitConfig(); err != nil {
+	var err error
+	if err = config.InitConfig(); err != nil {
 		logrus.Fatalf("failed to initialize config: %v", err)
 	}
 	cfg := config.Get()
-	if err := cfg.Validate(); err != nil {
+	if err = cfg.Validate(); err != nil {
 		logrus.WithError(err).Fatal("invalid configuration")
 	}
 
-	redisClient, err := redisPkg.NewRedisClient(&cfg.Redis)
+	var redisClient *redis.Client
+	redisClient, err = redisPkg.NewRedisClient(&cfg.Redis)
 	if err != nil {
 		logrus.WithError(err).Fatal("failed to initialize redis client")
 	}
@@ -75,7 +79,8 @@ func main() {
 	}
 	pgDB := db.NewPostgresDB(postgresConnect, cache)
 
-	minioClient, err := minioPkg.NewMinioClient(&cfg.Minio)
+	var minioClient *minio.Client
+	minioClient, err = minioPkg.NewMinioClient(&cfg.Minio)
 	if err != nil {
 		logrus.WithError(err).Fatal("failed to initialize minio client")
 	}
@@ -106,14 +111,17 @@ func main() {
 
 	minioDB := mnProvider.NewMinioDB(minioClient, &cfg.Minio, mediaTypeMap)
 
-	kafkaProducer := kafkaPkg.NewEventProducer(&cfg.Kafka)
+	var kafkaProducer *kafkaPkg.EventProducer
+	kafkaProducer = kafkaPkg.NewEventProducer(&cfg.Kafka)
+	
 	defer func() {
-		if err := kafkaProducer.Close(); err != nil {
-			logrus.Errorf("Error closing kafka producer: %v", err)
+		if taskErr := kafkaProducer.Close(); taskErr != nil {
+			logrus.Errorf("Error closing kafka producer: %v", taskErr)
 		}
 	}()
 
-	searchConn, err := grpc.NewClient(
+	var searchConn *grpc.ClientConn
+	searchConn, err = grpc.NewClient(
 		fmt.Sprintf("%s:%s", cfg.GRPC.Host, cfg.GRPC.SearchPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -161,12 +169,13 @@ func main() {
 
 	go func() {
 		logrus.Infof("Starting server on port %s", cfg.App.Port)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logrus.Fatalf("listen: %s\n", err)
+		if taskErr := srv.ListenAndServe(); taskErr != nil && taskErr != http.ErrServerClosed {
+			logrus.Fatalf("listen: %s\n", taskErr)
 		}
 	}()
 
-	lis, err := net.Listen("tcp4", fmt.Sprintf("0.0.0.0:%s", cfg.GRPC.IntegrationPort))
+	var lis net.Listener
+	lis, err = net.Listen("tcp4", fmt.Sprintf("0.0.0.0:%s", cfg.GRPC.IntegrationPort))
 	if err != nil {
 		logrus.Fatalf("failed to listen for grpc: %v", err)
 	}
@@ -181,8 +190,8 @@ func main() {
 
 	go func() {
 		logrus.Infof("Starting Integration gRPC server on port %s", cfg.GRPC.IntegrationPort)
-		if err := grpcServer.Serve(lis); err != nil {
-			logrus.Fatalf("grpc serve failed: %v", err)
+		if taskErr := grpcServer.Serve(lis); taskErr != nil {
+			logrus.Fatalf("grpc serve failed: %v", taskErr)
 		}
 	}()
 
@@ -194,17 +203,17 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
+	if err = srv.Shutdown(ctx); err != nil {
 		logrus.Fatal("Server forced to shutdown:", err)
 	}
 
 	logrus.Info("Closing database connection...")
-	if err := postgresConnect.Close(); err != nil {
+	if err = postgresConnect.Close(); err != nil {
 		logrus.Errorf("Error closing DB: %v", err)
 	}
 
 	logrus.Info("Closing redis connection...")
-	if err := redisClient.Close(); err != nil {
+	if err = redisClient.Close(); err != nil {
 		logrus.Errorf("Error closing Redis: %v", err)
 	}
 

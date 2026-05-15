@@ -60,8 +60,8 @@ func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (res *en
 			Username:  createdTweet.Author.Username,
 		}
 
-		if err := s.producer.Publish(cntx, events.TopicTweet, event); err != nil {
-			logrus.WithError(err).Error("failed to publish tweet.created")
+		if pErr := s.producer.Publish(cntx, events.TopicTweet, event); pErr != nil {
+			logrus.WithError(pErr).Error("failed to publish tweet.created")
 		}
 	}()
 

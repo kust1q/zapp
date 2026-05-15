@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"image"
 	"image/jpeg"
 	"strings"
 	"time"
@@ -83,8 +84,8 @@ func (s *service) SignUp(ctx context.Context, req *entity.User) (user *entity.Us
 			Bio:       createdUser.Bio,
 		}
 
-		if err := s.producer.Publish(cntx, events.TopicUser, event); err != nil {
-			logrus.WithError(err).Error("failed to publish user.created")
+		if pErr := s.producer.Publish(cntx, events.TopicUser, event); pErr != nil {
+			logrus.WithError(pErr).Error("failed to publish user.created")
 		}
 	}()
 
@@ -111,13 +112,15 @@ func (s *service) generateAndUploadAvatar(ctx context.Context, userID int, usern
 		return nil, fmt.Errorf("invalid gender")
 	}
 
-	img, err := govatar.GenerateForUsername(gen, username)
+	var img image.Image
+	var err error
+	img, err = govatar.GenerateForUsername(gen, username)
 	if err != nil {
 		return nil, fmt.Errorf("avatar generation failed: %w", err)
 	}
 
 	var buf bytes.Buffer
-	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 80}); err != nil {
+	if err = jpeg.Encode(&buf, img, &jpeg.Options{Quality: 80}); err != nil {
 		return nil, fmt.Errorf("JPEG encoding failed: %w", err)
 	}
 	avatarSaveName := uuid.New().String() + ".jpg"
@@ -126,7 +129,8 @@ func (s *service) generateAndUploadAvatar(ctx context.Context, userID int, usern
 }
 
 func (s *service) checkUserExists(ctx context.Context, email, username string) error {
-	_, err := s.db.GetUserByEmail(ctx, email)
+	var err error
+	_, err = s.db.GetUserByEmail(ctx, email)
 	if err == nil {
 		return errs.ErrEmailAlreadyUsed
 	}

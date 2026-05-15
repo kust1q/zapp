@@ -55,7 +55,7 @@ func (h *eventSearchHandler) handleTweet(ctx context.Context, data []byte) error
 
 	case events.TweetDeleteEvent:
 		var ev events.TweetDeleted
-		if err := json.Unmarshal(data, &ev); err != nil {
+		if err = json.Unmarshal(data, &ev); err != nil {
 			return err
 		}
 		return h.searchService.DeleteTweet(ctx, ev.ID)
@@ -86,11 +86,12 @@ func (h *eventSearchHandler) handleUser(ctx context.Context, data []byte) (err e
 
 	case events.UserDeleteEvent:
 		var ev events.UserDeleted
-		if err := json.Unmarshal(data, &ev); err != nil {
+		if err = json.Unmarshal(data, &ev); err != nil {
 			return err
 		}
 		return h.searchService.DeleteUserWithTweets(ctx, ev.ID)
 	}
+
 
 	return nil
 }

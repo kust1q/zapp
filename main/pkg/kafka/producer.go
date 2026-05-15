@@ -9,12 +9,12 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-type eventProducer struct {
+type EventProducer struct {
 	writers map[string]*kafka.Writer
 }
 
-func NewEventProducer(cfg *config.KafkaConfig) *eventProducer {
-	producer := &eventProducer{
+func NewEventProducer(cfg *config.KafkaConfig) *EventProducer {
+	producer := &EventProducer{
 		writers: make(map[string]*kafka.Writer),
 	}
 	for _, topic := range cfg.Topics {
@@ -28,7 +28,7 @@ func NewEventProducer(cfg *config.KafkaConfig) *eventProducer {
 	return producer
 }
 
-func (p *eventProducer) Publish(ctx context.Context, topic string, event any) error {
+func (p *EventProducer) Publish(ctx context.Context, topic string, event any) error {
 	writer, exists := p.writers[topic]
 	if !exists {
 		return fmt.Errorf("topic %s not configured", topic)
@@ -46,7 +46,7 @@ func (p *eventProducer) Publish(ctx context.Context, topic string, event any) er
 	)
 }
 
-func (p *eventProducer) Close() error {
+func (p *EventProducer) Close() error {
 	for topic, writer := range p.writers {
 		if err := writer.Close(); err != nil {
 			return fmt.Errorf("close writer %s failed: %w", topic, err)

@@ -66,7 +66,7 @@ func (h *Handler) createTweet(c *gin.Context) {
 			return
 		}
 	} else {
-		if err := c.BindJSON(&req); err != nil {
+		if err = c.BindJSON(&req); err != nil {
 			logrus.WithError(err).Error("failed to create tweet - invalid request body")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 			return
@@ -80,7 +80,8 @@ func (h *Handler) createTweet(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "impossible create empty tweet"})
 		return
 	} else if fileHeader != nil {
-		openedFile, err := fileHeader.Open()
+		var openedFile multipart.File
+		openedFile, err = fileHeader.Open()
 		if err != nil {
 			logrus.WithError(err).Error("failed to create tweet - open file error")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "open file error"})
@@ -97,7 +98,8 @@ func (h *Handler) createTweet(c *gin.Context) {
 		file = nil
 	}
 
-	tweet, err := h.tweetService.CreateTweet(c.Request.Context(), conv.FromTweetRequestToDomain(userID.(int), nil, file, &req))
+	var tweet *entity.Tweet
+	tweet, err = h.tweetService.CreateTweet(c.Request.Context(), conv.FromTweetRequestToDomain(userID.(int), nil, file, &req))
 
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -144,7 +146,9 @@ func (h *Handler) updateTweet(c *gin.Context) {
 		return
 	}
 
-	tweetID, err := strconv.Atoi(c.Param("tweet_id"))
+	var tweetID int
+	var err error
+	tweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || tweetID == 0 {
 		logrus.WithError(err).Error("failed to update tweet - invalid tweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tweet id"})
@@ -172,7 +176,7 @@ func (h *Handler) updateTweet(c *gin.Context) {
 			return
 		}
 	} else {
-		if err := c.BindJSON(&req); err != nil {
+		if err = c.BindJSON(&req); err != nil {
 			logrus.WithError(err).Error("failed to update tweet - invalid request body")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 			return
@@ -186,7 +190,8 @@ func (h *Handler) updateTweet(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "impossible update empty tweet"})
 		return
 	} else if fileHeader != nil {
-		openedFile, err := fileHeader.Open()
+		var openedFile multipart.File
+		openedFile, err = fileHeader.Open()
 		if err != nil {
 			logrus.WithError(err).Error("failed to update tweet - open file error")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "open file error"})
@@ -203,7 +208,8 @@ func (h *Handler) updateTweet(c *gin.Context) {
 		file = nil
 	}
 
-	tweet, err := h.tweetService.UpdateTweet(c.Request.Context(), conv.FromTweetUpdateRequestToDomain(userID.(int), tweetID, file, &req))
+	var tweet *entity.Tweet
+	tweet, err = h.tweetService.UpdateTweet(c.Request.Context(), conv.FromTweetUpdateRequestToDomain(userID.(int), tweetID, file, &req))
 	if err != nil && !errors.Is(err, errs.ErrTweetNotFound) {
 		logrus.WithFields(logrus.Fields{
 			"user_id":  userID.(int),
@@ -251,7 +257,10 @@ func (h *Handler) likeTweet(c *gin.Context) {
 		})
 		return
 	}
-	tweetID, err := strconv.Atoi(c.Param("tweet_id"))
+
+	var tweetID int
+	var err error
+	tweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || tweetID == 0 {
 		logrus.WithError(err).Error("failed to like tweet - invalid tweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tweet id"})
@@ -281,8 +290,8 @@ func (h *Handler) likeTweet(c *gin.Context) {
 	}
 
 	go func() {
-		if err = h.notificationService.NotifyLike(context.Background(), userID.(int), tweetID); err != nil {
-			logrus.WithError(err).Error("failed to notify like")
+		if pErr := h.notificationService.NotifyLike(context.Background(), userID.(int), tweetID); pErr != nil {
+			logrus.WithError(pErr).Error("failed to notify like")
 		}
 	}()
 
@@ -317,7 +326,10 @@ func (h *Handler) unlikeTweet(c *gin.Context) {
 		})
 		return
 	}
-	tweetID, err := strconv.Atoi(c.Param("tweet_id"))
+
+	var tweetID int
+	var err error
+	tweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || tweetID == 0 {
 		logrus.WithError(err).Error("failed to unlike tweet - invalid tweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tweet id"})
@@ -377,7 +389,10 @@ func (h *Handler) retweet(c *gin.Context) {
 		})
 		return
 	}
-	tweetID, err := strconv.Atoi(c.Param("tweet_id"))
+
+	var tweetID int
+	var err error
+	tweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || tweetID == 0 {
 		logrus.WithError(err).Error("failed to retweet - invalid tweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tweet id"})
@@ -407,8 +422,8 @@ func (h *Handler) retweet(c *gin.Context) {
 	}
 
 	go func() {
-		if err = h.notificationService.NotifyRetweet(context.Background(), userID.(int), tweetID); err != nil {
-			logrus.WithError(err).Warn("failed to notify retweet")
+		if pErr := h.notificationService.NotifyRetweet(context.Background(), userID.(int), tweetID); pErr != nil {
+			logrus.WithError(pErr).Warn("failed to notify retweet")
 		}
 	}()
 
@@ -443,7 +458,10 @@ func (h *Handler) deleteRetweet(c *gin.Context) {
 		})
 		return
 	}
-	retweetID, err := strconv.Atoi(c.Param("tweet_id"))
+
+	var retweetID int
+	var err error
+	retweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || retweetID == 0 {
 		logrus.WithError(err).Error("failed to delete retweet - invalid retweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid retweet id"})
@@ -507,7 +525,9 @@ func (h *Handler) replyToTweet(c *gin.Context) {
 		return
 	}
 
-	parentTweetID, err := strconv.Atoi(c.Param("tweet_id"))
+	var parentTweetID int
+	var err error
+	parentTweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || parentTweetID == 0 {
 		logrus.WithError(err).Error("failed to reply - invalid tweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tweet id"})
@@ -584,8 +604,8 @@ func (h *Handler) replyToTweet(c *gin.Context) {
 	}
 
 	go func() {
-		if err = h.notificationService.NotifyReply(context.Background(), userID.(int), parentTweetID); err != nil {
-			logrus.WithError(err).Error("failed to notify reply")
+		if pErr := h.notificationService.NotifyReply(context.Background(), userID.(int), parentTweetID); pErr != nil {
+			logrus.WithError(pErr).Error("failed to notify reply")
 		}
 	}()
 
@@ -609,7 +629,9 @@ func (h *Handler) replyToTweet(c *gin.Context) {
 // @Failure      500       {object}  response.Error "Internal server error"
 // @Router       /public/tweets/{tweet_id}/replies [get]
 func (h *Handler) getReplies(c *gin.Context) {
-	tweetID, err := strconv.Atoi(c.Param("tweet_id"))
+	var tweetID int
+	var err error
+	tweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || tweetID == 0 {
 		logrus.WithError(err).Error("failed to reply - invalid tweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tweet id"})
@@ -626,7 +648,8 @@ func (h *Handler) getReplies(c *gin.Context) {
 		limit = 10
 	}
 
-	replies, err := h.tweetService.GetRepliesToTweet(c.Request.Context(), tweetID, limit, offset)
+	var replies []entity.Tweet
+	replies, err = h.tweetService.GetRepliesToTweet(c.Request.Context(), tweetID, limit, offset)
 	if err != nil && !errors.Is(err, errs.ErrTweetNotFound) {
 		logrus.WithFields(logrus.Fields{
 			"tweet_id": tweetID,
@@ -662,14 +685,17 @@ func (h *Handler) getReplies(c *gin.Context) {
 // @Failure      500       {object}  response.Error "Internal server error"
 // @Router       /public/tweets/{tweet_id} [get]
 func (h *Handler) getTweetById(c *gin.Context) {
-	tweetID, err := strconv.Atoi(c.Param("tweet_id"))
+	var tweetID int
+	var err error
+	tweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || tweetID == 0 {
 		logrus.WithError(err).Error("failed to reply - invalid tweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tweet id"})
 		return
 	}
 
-	tweet, err := h.tweetService.GetTweetById(c.Request.Context(), tweetID)
+	var tweet *entity.Tweet
+	tweet, err = h.tweetService.GetTweetById(c.Request.Context(), tweetID)
 	if err != nil && !errors.Is(err, errs.ErrTweetNotFound) {
 		logrus.WithFields(logrus.Fields{
 			"tweet_id": tweetID,
@@ -721,7 +747,9 @@ func (h *Handler) getTweetsAndRetweetsByUsername(c *gin.Context) {
 		limit = 10
 	}
 
-	tweets, err := h.tweetService.GetTweetsAndRetweetsByUsername(c.Request.Context(), username, limit, offset)
+	var tweets []entity.Tweet
+	var err error
+	tweets, err = h.tweetService.GetTweetsAndRetweetsByUsername(c.Request.Context(), username, limit, offset)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"username": username,
@@ -748,7 +776,9 @@ func (h *Handler) getTweetsAndRetweetsByUsername(c *gin.Context) {
 // @Failure      500       {object}  response.Error "Internal server error"
 // @Router       /public/tweets/{tweet_id}/likes [get]
 func (h *Handler) getLikes(c *gin.Context) {
-	tweetID, err := strconv.Atoi(c.Param("tweet_id"))
+	var tweetID int
+	var err error
+	tweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || tweetID == 0 {
 		logrus.WithError(err).Error("failed to reply - invalid tweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tweet id"})
@@ -765,7 +795,8 @@ func (h *Handler) getLikes(c *gin.Context) {
 		limit = 10
 	}
 
-	likes, err := h.tweetService.GetLikes(c.Request.Context(), tweetID, limit, offset)
+	var likes []entity.SmallUser
+	likes, err = h.tweetService.GetLikes(c.Request.Context(), tweetID, limit, offset)
 	if err != nil && !errors.Is(err, errs.ErrTweetNotFound) {
 		logrus.WithFields(logrus.Fields{
 			"tweet_id": tweetID,
@@ -810,14 +841,17 @@ func (h *Handler) deleteTweet(c *gin.Context) {
 		})
 		return
 	}
-	tweetID, err := strconv.Atoi(c.Param("tweet_id"))
+
+	var tweetID int
+	var err error
+	tweetID, err = strconv.Atoi(c.Param("tweet_id"))
 	if err != nil || tweetID == 0 {
 		logrus.WithError(err).Error("failed to delete - invalid tweet id")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid tweet id"})
 		return
 	}
 
-	if err := h.tweetService.DeleteTweet(c.Request.Context(), userID.(int), tweetID); err != nil && !errors.Is(err, errs.ErrTweetNotFound) {
+	if err = h.tweetService.DeleteTweet(c.Request.Context(), userID.(int), tweetID); err != nil && !errors.Is(err, errs.ErrTweetNotFound) {
 		logrus.WithFields(logrus.Fields{
 			"user_id":  userID.(int),
 			"tweet_id": tweetID,
