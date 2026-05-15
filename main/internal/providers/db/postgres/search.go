@@ -62,7 +62,7 @@ func (pg *PostgresDB) GetUsersByIDs(ctx context.Context, ids []int) ([]entity.Us
 
 	userMap := make(map[int]models.User)
 	for _, u := range userModels {
-		userMap[int(u.ID)] = u
+		userMap[u.ID] = u
 	}
 
 	var result []entity.User

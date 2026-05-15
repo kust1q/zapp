@@ -33,7 +33,7 @@ func NewMinioClient(cfg *config.MinioConfig) (*minio.Client, error) {
 	}
 
 	if !exists {
-		err := client.MakeBucket(ctx, cfg.BucketName, minio.MakeBucketOptions{})
+		err = client.MakeBucket(ctx, cfg.BucketName, minio.MakeBucketOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("failed to create bucket: %w", err)
 		}

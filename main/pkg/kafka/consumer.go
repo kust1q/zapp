@@ -76,7 +76,7 @@ func (c *eventConsumer) runReader(ctx context.Context, topic string, handler Han
 			continue
 		}
 
-		if err := handler(ctx, topic, msg.Value); err != nil {
+		if err = handler(ctx, topic, msg.Value); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"topic": topic,
 				"error": err,

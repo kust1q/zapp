@@ -62,7 +62,4 @@ jobs:
       
       - name: Validate Kubernetes manifests
         run: |
-          for file in $(find k8s -name "*.yaml" -o -name "*.yml"); do
-            echo "Validating $file"
-            kubectl apply --dry-run=client --validate=false -f "$file"
-          done
+          docker run --rm -v ${{ github.workspace }}:/project -w /project ghcr.io/yannh/kubeconform:latest-alpine -summary -ignore-missing-schemas k8s/

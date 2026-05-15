@@ -209,7 +209,7 @@ func (h *Handler) signOut(c *gin.Context) {
 		return
 	}
 
-	if err := h.authService.SignOut(c.Request.Context(), conv.FromRefreshRequestToDomain(refreshToken)); err != nil {
+	if err = h.authService.SignOut(c.Request.Context(), conv.FromRefreshRequestToDomain(refreshToken)); err != nil {
 		logrus.WithError(err).Error("failed to sign out - internal server error")
 		c.SetCookie(RefreshTokenCookieName, "", -1, "/", "", false, true)
 		c.JSON(http.StatusInternalServerError, gin.H{

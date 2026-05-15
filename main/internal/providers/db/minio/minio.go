@@ -36,7 +36,8 @@ func (s *minioDB) Upload(ctx context.Context, file io.Reader, mediaType entity.M
 		return "", "", fmt.Errorf("unsupported media type: %s", mediaType)
 	}
 	ext := strings.ToLower(filepath.Ext(filename))
-	data, err := s.readAndValidate(file, ext, config)
+	var data []byte
+	data, err = s.readAndValidate(file, ext, config)
 	if err != nil {
 		return "", "", err
 	}

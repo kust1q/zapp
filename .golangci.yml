@@ -25,30 +25,8 @@ linters-settings:
     enable:
       - shadow
   revive:
-    rules:
-      - name: blank-imports
-      - name: context-as-first-arg
-      - name: dot-imports
-      - name: error-return
-      - name: error-strings
-      - name: error-naming
-      - name: exported
-      - name: if-return
-      - name: increment-decrement
-      - name: var-naming
-      - name: package-comments
-      - name: range
-      - name: receiver-naming
-      - name: time-naming
-      - name: unexported-return
-      - name: indent-error-flow
-      - name: errorf
-      - name: empty-block
-      - name: superfluous-else
-      - name: unused-parameter
-      - name: unreachable-code
-      - name: redefines-builtin-id
-
+    severity: warning
+    # Rules will use defaults to avoid 'cannot find rule' errors in CI
 issues:
   exclude-use-default: false
   max-issues-per-linter: 0

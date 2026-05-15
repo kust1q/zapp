@@ -47,7 +47,7 @@ func (s *service) UpdateTweet(ctx context.Context, req *entity.Tweet) (*entity.T
 
 	var mediaUrl string
 	if req.File != nil {
-		if err := s.media.DeleteTweetMedia(ctx, req.ID, req.Author.ID); err != nil {
+		if err = s.media.DeleteTweetMedia(ctx, req.ID, req.Author.ID); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"tweet_id": req.ID,
 				"error":    err,
@@ -61,7 +61,7 @@ func (s *service) UpdateTweet(ctx context.Context, req *entity.Tweet) (*entity.T
 
 	updatedTweet.MediaUrl = mediaUrl
 
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
@@ -75,7 +75,7 @@ func (s *service) UpdateTweet(ctx context.Context, req *entity.Tweet) (*entity.T
 			UserID:    updatedTweet.Author.ID,
 			Username:  updatedTweet.Author.Username,
 		}
-		if err := s.producer.Publish(cntx, events.TopicTweet, event); err != nil {
+		if err = s.producer.Publish(cntx, events.TopicTweet, event); err != nil {
 			logrus.WithError(err).Error("failed to publish tweet.updated")
 		}
 	}()

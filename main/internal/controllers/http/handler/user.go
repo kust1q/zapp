@@ -333,8 +333,8 @@ func (h *Handler) followUser(c *gin.Context) {
 	}
 
 	go func() {
-		if err := h.notificationService.NotifyFollow(context.Background(), followerID.(int), followingID); err != nil {
-			logrus.WithError(err).Error("failed to notify reply")
+		if err = h.notificationService.NotifyFollow(context.Background(), followerID.(int), followingID); err != nil {
+			logrus.WithError(err).Error("failed to notify follow")
 		}
 	}()
 

@@ -32,14 +32,15 @@ func (h *eventSearchHandler) handleTweet(ctx context.Context, data []byte) error
 	var meta struct {
 		EventType events.EventType `json:"event_type"`
 	}
-	if err := json.Unmarshal(data, &meta); err != nil {
+	var err error
+	if err = json.Unmarshal(data, &meta); err != nil {
 		return err
 	}
 
 	switch meta.EventType {
 	case events.TweetCreateEvent, events.TweetUpdateEvent:
 		var ev events.TweetEvent
-		if err := json.Unmarshal(data, &ev); err != nil {
+		if err = json.Unmarshal(data, &ev); err != nil {
 			return err
 		}
 		tweet := entity.Tweet{
@@ -66,14 +67,15 @@ func (h *eventSearchHandler) handleUser(ctx context.Context, data []byte) error 
 	var meta struct {
 		EventType events.EventType `json:"event_type"`
 	}
-	if err := json.Unmarshal(data, &meta); err != nil {
+	var err error
+	if err = json.Unmarshal(data, &meta); err != nil {
 		return err
 	}
 
 	switch meta.EventType {
 	case events.UserCreateEvent:
 		var ev events.UserEvent
-		if err := json.Unmarshal(data, &ev); err != nil {
+		if err = json.Unmarshal(data, &ev); err != nil {
 			return err
 		}
 		user := entity.User{

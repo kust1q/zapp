@@ -77,7 +77,8 @@ func (pg *PostgresDB) DeleteMediaByTweetID(ctx context.Context, tweetID, userID 
 	if err != nil {
 		return err
 	}
-	rowsAffected, err := result.RowsAffected()
+	var rowsAffected int64
+	rowsAffected, err = result.RowsAffected()
 	if err != nil {
 		return err
 	}
@@ -132,7 +133,8 @@ func (pg *PostgresDB) DeleteAvatarByUserID(ctx context.Context, userID int) erro
 	if err != nil {
 		return err
 	}
-	rowsAffected, err := result.RowsAffected()
+	var rowsAffected int64
+	rowsAffected, err = result.RowsAffected()
 	if err != nil {
 		return err
 	}

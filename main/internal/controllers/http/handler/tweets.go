@@ -49,7 +49,7 @@ func (h *Handler) createTweet(c *gin.Context) {
 	var err error
 	ct := c.ContentType()
 	if strings.HasPrefix(ct, "multipart/form-data") {
-		if err := c.Request.ParseMultipartForm(maxMemoryForm); err != nil {
+		if err = c.Request.ParseMultipartForm(maxMemoryForm); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse form data"})
 			return
 		}
@@ -155,7 +155,7 @@ func (h *Handler) updateTweet(c *gin.Context) {
 	var fileHeader *multipart.FileHeader
 	ct := c.ContentType()
 	if strings.HasPrefix(ct, "multipart/form-data") {
-		if err := c.Request.ParseMultipartForm(maxMemoryForm); err != nil {
+		if err = c.Request.ParseMultipartForm(maxMemoryForm); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse form data"})
 			return
 		}
@@ -281,8 +281,8 @@ func (h *Handler) likeTweet(c *gin.Context) {
 	}
 
 	go func() {
-		if err := h.notificationService.NotifyLike(context.Background(), userID.(int), tweetID); err != nil {
-			logrus.WithError(err).Warn("failed to notify like")
+		if err = h.notificationService.NotifyLike(context.Background(), userID.(int), tweetID); err != nil {
+			logrus.WithError(err).Error("failed to notify like")
 		}
 	}()
 
@@ -407,8 +407,8 @@ func (h *Handler) retweet(c *gin.Context) {
 	}
 
 	go func() {
-		if err := h.notificationService.NotifyRetweet(context.Background(), userID.(int), tweetID); err != nil {
-			logrus.WithError(err).Warn("ailed to notify retweet")
+		if err = h.notificationService.NotifyRetweet(context.Background(), userID.(int), tweetID); err != nil {
+			logrus.WithError(err).Warn("failed to notify retweet")
 		}
 	}()
 
@@ -518,7 +518,7 @@ func (h *Handler) replyToTweet(c *gin.Context) {
 	var fileHeader *multipart.FileHeader
 	ct := c.ContentType()
 	if strings.HasPrefix(ct, "multipart/form-data") {
-		if err := c.Request.ParseMultipartForm(maxMemoryForm); err != nil {
+		if err = c.Request.ParseMultipartForm(maxMemoryForm); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse form data"})
 			return
 		}
@@ -582,8 +582,8 @@ func (h *Handler) replyToTweet(c *gin.Context) {
 	}
 
 	go func() {
-		if err := h.notificationService.NotifyReply(context.Background(), userID.(int), parentTweetID); err != nil {
-			logrus.WithError(err).Warn("failed to notify reply")
+		if err = h.notificationService.NotifyReply(context.Background(), userID.(int), parentTweetID); err != nil {
+			logrus.WithError(err).Error("failed to notify reply")
 		}
 	}()
 

@@ -42,7 +42,7 @@ func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (*entity
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err = tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit transaction failed: %w", err)
 	}
 

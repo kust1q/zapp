@@ -130,7 +130,8 @@ func (pg *PostgresDB) UpdateUserPassword(ctx context.Context, userID int, passwo
 	if err != nil {
 		return err
 	}
-	rowsAffected, err := result.RowsAffected()
+	var rowsAffected int64
+	rowsAffected, err = result.RowsAffected()
 	if err != nil {
 		return err
 	}
@@ -309,7 +310,8 @@ func (pg *PostgresDB) DeleteUser(ctx context.Context, userID int) error {
 	if err != nil {
 		return err
 	}
-	rowsAffected, err := result.RowsAffected()
+	var rowsAffected int64
+	rowsAffected, err = result.RowsAffected()
 	if err != nil {
 		return err
 	}
