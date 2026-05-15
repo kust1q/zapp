@@ -9,7 +9,4 @@
 .env
 .env.*
 **/docs/
-**/configs/
-**/migrations/
-**/certs/
 **/coverage.out
