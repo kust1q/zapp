@@ -17,7 +17,7 @@ import (
 type MockauthService struct {
 	ctrl     *gomock.Controller
 	recorder *MockauthServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockauthServiceMockRecorder is the mock recorder for MockauthService.
@@ -172,7 +172,7 @@ func (mr *MockauthServiceMockRecorder) VerifyAccessToken(tokenString any) *gomoc
 type MocktweetService struct {
 	ctrl     *gomock.Controller
 	recorder *MocktweetServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MocktweetServiceMockRecorder is the mock recorder for MocktweetService.
@@ -356,7 +356,7 @@ func (mr *MocktweetServiceMockRecorder) UpdateTweet(ctx, req any) *gomock.Call {
 type MockuserService struct {
 	ctrl     *gomock.Controller
 	recorder *MockuserServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockuserServiceMockRecorder is the mock recorder for MockuserService.
@@ -497,7 +497,7 @@ func (mr *MockuserServiceMockRecorder) Update(ctx, req any) *gomock.Call {
 type MockclientSearchService struct {
 	ctrl     *gomock.Controller
 	recorder *MockclientSearchServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockclientSearchServiceMockRecorder is the mock recorder for MockclientSearchService.
@@ -551,7 +551,7 @@ func (mr *MockclientSearchServiceMockRecorder) SearchUsers(ctx, query any) *gomo
 type MockfeedService struct {
 	ctrl     *gomock.Controller
 	recorder *MockfeedServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockfeedServiceMockRecorder is the mock recorder for MockfeedService.
@@ -605,7 +605,7 @@ func (mr *MockfeedServiceMockRecorder) GetUserFeedByUserId(ctx, userID, limit, o
 type MockmediaService struct {
 	ctrl     *gomock.Controller
 	recorder *MockmediaServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockmediaServiceMockRecorder is the mock recorder for MockmediaService.
@@ -673,7 +673,7 @@ func (mr *MockmediaServiceMockRecorder) GetMediaDataByTweetID(ctx, tweetID any) 
 type MockwebSocketService struct {
 	ctrl     *gomock.Controller
 	recorder *MockwebSocketServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockwebSocketServiceMockRecorder is the mock recorder for MockwebSocketService.
@@ -711,7 +711,7 @@ func (mr *MockwebSocketServiceMockRecorder) HandleConnection(w, r, userID any) *
 type MocknotificationService struct {
 	ctrl     *gomock.Controller
 	recorder *MocknotificationServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MocknotificationServiceMockRecorder is the mock recorder for MocknotificationService.

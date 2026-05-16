@@ -1,4 +1,3 @@
-
 // Package mocks is a generated GoMock package.
 package mocks
 
@@ -15,7 +14,7 @@ import (
 type Mockdb struct {
 	ctrl     *gomock.Controller
 	recorder *MockdbMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockdbMockRecorder is the mock recorder for Mockdb.
@@ -186,7 +185,7 @@ func (mr *MockdbMockRecorder) UpdateUserBio(ctx, userID, bio any) *gomock.Call {
 type MockmediaService struct {
 	ctrl     *gomock.Controller
 	recorder *MockmediaServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockmediaServiceMockRecorder is the mock recorder for MockmediaService.
@@ -268,7 +267,7 @@ func (mr *MockmediaServiceMockRecorder) GetMediaUrlByTweetID(ctx, tweetID any) *
 type MockeventProducer struct {
 	ctrl     *gomock.Controller
 	recorder *MockeventProducerMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockeventProducerMockRecorder is the mock recorder for MockeventProducer.

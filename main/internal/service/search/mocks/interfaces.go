@@ -15,7 +15,7 @@ import (
 type MockmediaService struct {
 	ctrl     *gomock.Controller
 	recorder *MockmediaServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MockmediaServiceMockRecorder is the mock recorder for MockmediaService.
@@ -69,7 +69,7 @@ func (mr *MockmediaServiceMockRecorder) GetMediaUrlByTweetID(ctx, tweetID any) *
 type MocktweetService struct {
 	ctrl     *gomock.Controller
 	recorder *MocktweetServiceMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MocktweetServiceMockRecorder is the mock recorder for MocktweetService.
@@ -108,7 +108,7 @@ func (mr *MocktweetServiceMockRecorder) BuildEntityTweetToResponse(ctx, tweet an
 type MocksearchStorage struct {
 	ctrl     *gomock.Controller
 	recorder *MocksearchStorageMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MocksearchStorageMockRecorder is the mock recorder for MocksearchStorage.
@@ -162,7 +162,7 @@ func (mr *MocksearchStorageMockRecorder) GetUsersByIDs(ctx, ids any) *gomock.Cal
 type MocksearchProvider struct {
 	ctrl     *gomock.Controller
 	recorder *MocksearchProviderMockRecorder
-	isgomock struct{}
+	isgomock struct{} //nolint:unused
 }
 
 // MocksearchProviderMockRecorder is the mock recorder for MocksearchProvider.

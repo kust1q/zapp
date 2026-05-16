@@ -12,7 +12,8 @@ import (
 )
 
 func (s *service) DeleteUser(ctx context.Context, userID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	if err := s.media.DeleteAvatar(ctx, userID); err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -35,13 +36,13 @@ func (s *service) DeleteUser(ctx context.Context, userID int) error {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		event := events.UserDeleted{
 			EventType: events.TweetDeleteEvent,
 			ID:        userID,
 		}
-		if err := s.producer.Publish(ctx, events.TopicTweet, event); err != nil {
+		if err := s.producer.Publish(bgCtx, events.TopicTweet, event); err != nil {
 			logrus.WithError(err).Error("failed to publish user.deleted")
 		}
 	}()

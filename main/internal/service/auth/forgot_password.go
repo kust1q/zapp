@@ -14,7 +14,8 @@ import (
 )
 
 func (s *service) ForgotPassword(ctx context.Context, req *entity.ForgotPassword) (*entity.Recovery, error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	req.Email = strings.ToLower(strings.TrimSpace(req.Email))

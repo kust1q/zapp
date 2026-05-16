@@ -15,7 +15,8 @@ import (
 )
 
 func (s *service) Refresh(ctx context.Context, req *entity.Refresh) (*entity.Tokens, error) {
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	req.Refresh = strings.TrimSpace(req.Refresh)

@@ -22,7 +22,8 @@ func NewNotificationService(hub hubProvider, db db) *service {
 }
 
 func (s *service) NotifyLike(ctx context.Context, actorID, tweetID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	tweet, err := s.db.GetTweetById(ctx, tweetID)
 	if err != nil {
@@ -57,7 +58,8 @@ func (s *service) NotifyLike(ctx context.Context, actorID, tweetID int) error {
 }
 
 func (s *service) NotifyRetweet(ctx context.Context, actorID, tweetID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	tweet, err := s.db.GetTweetById(ctx, tweetID)
@@ -93,7 +95,8 @@ func (s *service) NotifyRetweet(ctx context.Context, actorID, tweetID int) error
 }
 
 func (s *service) NotifyReply(ctx context.Context, actorID, tweetID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	tweet, err := s.db.GetTweetById(ctx, tweetID)
@@ -129,7 +132,8 @@ func (s *service) NotifyReply(ctx context.Context, actorID, tweetID int) error {
 }
 
 func (s *service) NotifyFollow(ctx context.Context, followerID, followingID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	follower, err := s.db.GetUserByID(ctx, followerID)

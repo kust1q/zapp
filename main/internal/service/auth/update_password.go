@@ -12,7 +12,8 @@ import (
 )
 
 func (s *service) UpdatePassword(ctx context.Context, req *entity.UpdatePassword) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	req.OldPassword = strings.TrimSpace(req.OldPassword)

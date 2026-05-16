@@ -7,7 +7,8 @@ import (
 )
 
 func (s *service) CreateRetweet(ctx context.Context, userID, tweetID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	err := s.db.Retweet(ctx, userID, tweetID, time.Now())
 	if err != nil {
@@ -17,7 +18,8 @@ func (s *service) CreateRetweet(ctx context.Context, userID, tweetID int) error 
 }
 
 func (s *service) DeleteRetweet(ctx context.Context, userID, retweetID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	err := s.db.DeleteRetweet(ctx, userID, retweetID)
 	if err != nil {

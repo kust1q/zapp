@@ -21,7 +21,8 @@ func NewFeedService(db db, tweetService tweetService) *service {
 }
 
 func (s *service) GetUserFeedByUserId(ctx context.Context, userID, limit, offset int) ([]entity.Tweet, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	user, err := s.db.GetUserByID(ctx, userID)
@@ -58,7 +59,8 @@ func (s *service) GetUserFeedByUserId(ctx context.Context, userID, limit, offset
 }
 
 func (s *service) GetDeafultFeed(ctx context.Context, limit, offset int) ([]entity.Tweet, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	feed, err := s.db.GetAllTweets(ctx, limit, offset)
 	if err != nil {

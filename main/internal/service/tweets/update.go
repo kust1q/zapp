@@ -14,7 +14,8 @@ import (
 )
 
 func (s *service) UpdateTweet(ctx context.Context, req *entity.Tweet) (*entity.Tweet, error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	exTweet, err := s.db.GetTweetById(ctx, req.ID)
@@ -66,7 +67,7 @@ func (s *service) UpdateTweet(ctx context.Context, req *entity.Tweet) (*entity.T
 	}
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		event := events.TweetEvent{
 			EventType: events.TweetUpdateEvent,
@@ -75,7 +76,7 @@ func (s *service) UpdateTweet(ctx context.Context, req *entity.Tweet) (*entity.T
 			UserID:    updatedTweet.Author.ID,
 			Username:  updatedTweet.Author.Username,
 		}
-		if err = s.producer.Publish(ctx, events.TopicTweet, event); err != nil {
+		if err = s.producer.Publish(bgCtx, events.TopicTweet, event); err != nil {
 			logrus.WithError(err).Error("failed to publish tweet.updated")
 		}
 	}()

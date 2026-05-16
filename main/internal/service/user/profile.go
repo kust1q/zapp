@@ -11,7 +11,8 @@ import (
 )
 
 func (s *service) GetMe(ctx context.Context, userID, limit, offset int) (*entity.UserProfile, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	user, err := s.db.GetUserByID(ctx, userID)
 	if err != nil {
@@ -21,7 +22,8 @@ func (s *service) GetMe(ctx context.Context, userID, limit, offset int) (*entity
 }
 
 func (s *service) GetUserProfile(ctx context.Context, username string, limit, offset int) (*entity.UserProfile, error) {
-	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
 	user, err := s.db.GetUserByUsername(ctx, username)

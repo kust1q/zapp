@@ -12,13 +12,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *service) SignOut(ctx context.Context, req *entity.Refresh) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+func (s *service) SignOut(ctx context.Context, refreshToken string) error {
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	req.Refresh = strings.TrimSpace(req.Refresh)
+	refreshToken = strings.TrimSpace(refreshToken)
 
-	if err := s.tokens.RemoveRefresh(ctx, req.Refresh); err != nil {
+	if err := s.tokens.RemoveRefresh(ctx, refreshToken); err != nil {
 		if errors.Is(err, errs.ErrTokenNotFound) {
 			logrus.Warn("refresh token already deleted or expired")
 		}

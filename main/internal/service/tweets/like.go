@@ -12,7 +12,8 @@ import (
 )
 
 func (s *service) LikeTweet(ctx context.Context, userID, tweetID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	err := s.db.LikeTweet(ctx, userID, tweetID)
 	if err != nil && !errors.Is(err, errs.ErrTweetNotFound) {
@@ -24,7 +25,8 @@ func (s *service) LikeTweet(ctx context.Context, userID, tweetID int) error {
 }
 
 func (s *service) UnlikeTweet(ctx context.Context, userID, tweetID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	err := s.db.UnLikeTweet(ctx, userID, tweetID)
 	if err != nil {
@@ -34,7 +36,8 @@ func (s *service) UnlikeTweet(ctx context.Context, userID, tweetID int) error {
 }
 
 func (s *service) GetLikes(ctx context.Context, tweetID, limit, offset int) ([]entity.SmallUser, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	users, err := s.db.GetLikes(ctx, tweetID, limit, offset)
 	if err != nil {

@@ -11,7 +11,8 @@ import (
 )
 
 func (s *service) DeleteTweet(ctx context.Context, userID, tweetID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	if err := s.media.DeleteTweetMedia(ctx, tweetID, userID); err != nil && !errors.Is(err, errs.ErrTweetMediaNotFound) {
 		logrus.WithFields(logrus.Fields{
@@ -25,13 +26,13 @@ func (s *service) DeleteTweet(ctx context.Context, userID, tweetID int) error {
 	}
 
 	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		event := events.TweetDeleted{
 			EventType: events.TweetDeleteEvent,
 			ID:        tweetID,
 		}
-		if err := s.producer.Publish(ctx, events.TopicTweet, event); err != nil {
+		if err := s.producer.Publish(bgCtx, events.TopicTweet, event); err != nil {
 			logrus.WithError(err).Error("failed to publish tweet.deleted")
 		}
 	}()

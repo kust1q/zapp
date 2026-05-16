@@ -11,8 +11,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *service) RecoveryPassword(ctx context.Context, req *entity.RecoveryPassword) error {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+func (s *service) RecoveryPassword(ctx context.Context, req *entity.Recovery) error {
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	req.NewPassword = strings.TrimSpace(req.NewPassword)

@@ -25,7 +25,8 @@ func NewMediaService(db db, object objectStorage) *service {
 }
 
 func (s *service) UploadAndAttachTweetMediaTx(ctx context.Context, tweetID int, file io.Reader, filename string, tx *sql.Tx) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	mt, err := s.detectMediaType(filename)
 	if err != nil {
@@ -58,7 +59,8 @@ func (s *service) UploadAndAttachTweetMediaTx(ctx context.Context, tweetID int, 
 }
 
 func (s *service) GetMediaUrlByTweetID(ctx context.Context, tweetID int) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	mediaPath, err := s.db.GetMediaPathByTweetID(ctx, tweetID)
 	if err != nil {
@@ -69,7 +71,8 @@ func (s *service) GetMediaUrlByTweetID(ctx context.Context, tweetID int) (string
 }
 
 func (s *service) GetMediaDataByTweetID(ctx context.Context, tweetID int) (*entity.TweetMedia, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	tweetMedia, err := s.db.GetMediaDataByTweetID(ctx, tweetID)
 	if err != nil && err != sql.ErrNoRows {
@@ -93,7 +96,8 @@ func (s *service) GetMediaDataByTweetID(ctx context.Context, tweetID int) (*enti
 }
 
 func (s *service) DeleteTweetMedia(ctx context.Context, tweetID, userID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	media, err := s.db.GetMediaDataByTweetID(ctx, tweetID)
 	if err != nil {
@@ -109,7 +113,8 @@ func (s *service) DeleteTweetMedia(ctx context.Context, tweetID, userID int) err
 }
 
 func (s *service) UploadAvatarTx(ctx context.Context, userID int, file io.Reader, filename string, tx *sql.Tx) (res *entity.Avatar, err error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	var mt entity.MediaType
@@ -139,9 +144,9 @@ func (s *service) UploadAvatarTx(ctx context.Context, userID int, file io.Reader
 	})
 
 	if err != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		go s.cleanUpMedia(ctx, path)
+		go s.cleanUpMedia(bgCtx, path)
 		return nil, fmt.Errorf("upload avatar failed: %w", err)
 	}
 
@@ -154,7 +159,8 @@ func (s *service) UploadAvatarTx(ctx context.Context, userID int, file io.Reader
 }
 
 func (s *service) GetAvatarUrlByUserID(ctx context.Context, userID int) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	avatarPath, err := s.db.GetAvatarPathByUserID(ctx, userID)
 	if err != nil {
@@ -165,7 +171,8 @@ func (s *service) GetAvatarUrlByUserID(ctx context.Context, userID int) (string,
 }
 
 func (s *service) GetAvatarDataByUserID(ctx context.Context, userID int) (*entity.Avatar, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	avatar, err := s.db.GetAvatarDataByUserID(ctx, userID)
@@ -189,7 +196,8 @@ func (s *service) GetAvatarDataByUserID(ctx context.Context, userID int) (*entit
 }
 
 func (s *service) DeleteAvatar(ctx context.Context, userID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	avatar, err := s.db.GetAvatarDataByUserID(ctx, userID)
@@ -208,7 +216,8 @@ func (s *service) DeleteAvatar(ctx context.Context, userID int) error {
 }
 
 func (s *service) DeleteMediasByUserID(ctx context.Context, userID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	urls, err := s.db.GetMediaUrlsByUserID(ctx, userID)
@@ -239,9 +248,9 @@ func (s *service) asyncCleanup(path string) {
 		return
 	}
 	go func(p string) {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		s.cleanUpMedia(ctx, p)
+		s.cleanUpMedia(bgCtx, p)
 	}(path)
 }
 

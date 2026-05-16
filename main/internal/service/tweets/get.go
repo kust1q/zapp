@@ -12,7 +12,8 @@ import (
 )
 
 func (s *service) GetTweetById(ctx context.Context, tweetID int) (*entity.Tweet, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	tweet, err := s.db.GetTweetById(ctx, tweetID)
 
@@ -26,7 +27,8 @@ func (s *service) GetTweetById(ctx context.Context, tweetID int) (*entity.Tweet,
 }
 
 func (s *service) GetTweetsAndRetweetsByUsername(ctx context.Context, username string, limit, offset int) ([]entity.Tweet, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	tweets, err := s.db.GetTweetsAndRetweetsByUsername(ctx, username, limit, offset)
 	if err != nil {
@@ -54,7 +56,8 @@ func (s *service) GetTweetsAndRetweetsByUsername(ctx context.Context, username s
 }
 
 func (s *service) GetRepliesToTweet(ctx context.Context, tweetID, limit, offset int) ([]entity.Tweet, error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	replies, err := s.db.GetRepliesToTweet(ctx, tweetID, limit, offset)

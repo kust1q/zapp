@@ -9,7 +9,8 @@ import (
 )
 
 func (s *service) GetUserByID(ctx context.Context, userID int) (*entity.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	user, err := s.db.GetUserByID(ctx, userID)
@@ -28,7 +29,8 @@ func (s *service) GetUserByID(ctx context.Context, userID int) (*entity.User, er
 }
 
 func (s *service) GetUserByUsername(ctx context.Context, username string) (*entity.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	user, err := s.db.GetUserByUsername(ctx, username)

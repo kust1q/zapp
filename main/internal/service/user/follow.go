@@ -9,7 +9,8 @@ import (
 )
 
 func (s *service) FollowToUser(ctx context.Context, followerID, followingID int) (*entity.Follow, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	if followerID == followingID {
 		return nil, fmt.Errorf("impossible to subscribe to yourself")
@@ -18,13 +19,15 @@ func (s *service) FollowToUser(ctx context.Context, followerID, followingID int)
 }
 
 func (s *service) UnfollowUser(ctx context.Context, followerID, followingID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	return s.db.UnfollowUser(ctx, followerID, followingID)
 }
 
 func (s *service) GetFollowers(ctx context.Context, username string, limit, offset int) ([]entity.SmallUser, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	followersIDs, err := s.db.GetFollowersIds(ctx, username, limit, offset)
 	if err != nil {
@@ -54,7 +57,8 @@ func (s *service) GetFollowers(ctx context.Context, username string, limit, offs
 }
 
 func (s *service) GetFollowings(ctx context.Context, username string, limit, offset int) ([]entity.SmallUser, error) {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	followingsIDs, err := s.db.GetFollowingsIds(ctx, username, limit, offset)
 

@@ -19,7 +19,8 @@ func NewSearchService(searchRepo searchRepository) *searchService {
 }
 
 func (s *searchService) SearchTweets(ctx context.Context, query string) ([]int, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	ids, err := s.searchRepo.SearchTweets(ctx, query)
 	if err != nil {
@@ -29,7 +30,8 @@ func (s *searchService) SearchTweets(ctx context.Context, query string) ([]int, 
 }
 
 func (s *searchService) SearchUsers(ctx context.Context, query string) ([]int, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	ids, err := s.searchRepo.SearchUsers(ctx, query)
 	if err != nil {
@@ -39,25 +41,29 @@ func (s *searchService) SearchUsers(ctx context.Context, query string) ([]int, e
 }
 
 func (s *searchService) IndexTweet(ctx context.Context, tweet *entity.Tweet) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return s.searchRepo.IndexTweet(ctx, tweet)
 }
 
 func (s *searchService) IndexUser(ctx context.Context, user *entity.User) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return s.searchRepo.IndexUser(ctx, user)
 }
 
 func (s *searchService) DeleteTweet(ctx context.Context, tweetID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return s.searchRepo.DeleteTweet(ctx, tweetID)
 }
 
 func (s *searchService) DeleteUserWithTweets(ctx context.Context, userID int) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	if err := s.searchRepo.DeleteUser(ctx, userID); err != nil {
 		return err
