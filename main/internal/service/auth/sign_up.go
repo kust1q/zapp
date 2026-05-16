@@ -75,7 +75,7 @@ func (s *service) SignUp(ctx context.Context, req *entity.User) (user *entity.Us
 	}
 
 	go func() {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		event := events.UserEvent{
 			EventType: events.UserCreateEvent,
@@ -84,7 +84,7 @@ func (s *service) SignUp(ctx context.Context, req *entity.User) (user *entity.Us
 			Bio:       createdUser.Bio,
 		}
 
-		if pErr := s.producer.Publish(cntx, events.TopicUser, event); pErr != nil {
+		if pErr := s.producer.Publish(ctx, events.TopicUser, event); pErr != nil {
 			logrus.WithError(pErr).Error("failed to publish user.created")
 		}
 	}()

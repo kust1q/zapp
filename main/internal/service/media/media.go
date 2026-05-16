@@ -139,9 +139,9 @@ func (s *service) UploadAvatarTx(ctx context.Context, userID int, file io.Reader
 	})
 
 	if err != nil {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		go s.cleanUpMedia(cntx, path)
+		go s.cleanUpMedia(ctx, path)
 		return nil, fmt.Errorf("upload avatar failed: %w", err)
 	}
 

@@ -35,13 +35,13 @@ func (s *service) DeleteUser(ctx context.Context, userID int) error {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 	go func() {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		event := events.UserDeleted{
 			EventType: events.TweetDeleteEvent,
 			ID:        userID,
 		}
-		if err := s.producer.Publish(cntx, events.TopicTweet, event); err != nil {
+		if err := s.producer.Publish(ctx, events.TopicTweet, event); err != nil {
 			logrus.WithError(err).Error("failed to publish user.deleted")
 		}
 	}()

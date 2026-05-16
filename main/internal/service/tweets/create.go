@@ -50,7 +50,7 @@ func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (res *en
 	}
 
 	go func() {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		event := events.TweetEvent{
 			EventType: events.TweetCreateEvent,
@@ -60,7 +60,7 @@ func (s *service) CreateTweet(ctx context.Context, tweet *entity.Tweet) (res *en
 			Username:  createdTweet.Author.Username,
 		}
 
-		if pErr := s.producer.Publish(cntx, events.TopicTweet, event); pErr != nil {
+		if pErr := s.producer.Publish(ctx, events.TopicTweet, event); pErr != nil {
 			logrus.WithError(pErr).Error("failed to publish tweet.created")
 		}
 	}()

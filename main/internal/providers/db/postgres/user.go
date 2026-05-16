@@ -58,9 +58,9 @@ func (pg *PostgresDB) GetUserByEmail(ctx context.Context, email string) (*entity
 	}
 
 	go func(model *models.User) {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if CacheErr := pg.Cache.SetUser(cntx, model); CacheErr != nil {
+		if CacheErr := pg.Cache.SetUser(ctx, model); CacheErr != nil {
 			logrus.WithError(CacheErr).WithField("email", email).Warn("failed to set user in Cache")
 		}
 	}(&userModel)
@@ -91,9 +91,9 @@ func (pg *PostgresDB) GetUserByUsername(ctx context.Context, username string) (*
 	}
 
 	go func(model *models.User) {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if CacheErr := pg.Cache.SetUser(cntx, model); CacheErr != nil {
+		if CacheErr := pg.Cache.SetUser(ctx, model); CacheErr != nil {
 			logrus.WithError(CacheErr).WithField("username", username).Warn("failed to set user in Cache")
 		}
 	}(&userModel)
@@ -121,9 +121,9 @@ func (pg *PostgresDB) GetUserByID(ctx context.Context, userID int) (*entity.User
 	}
 
 	go func(model *models.User) {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if CacheErr := pg.Cache.SetUser(cntx, model); CacheErr != nil {
+		if CacheErr := pg.Cache.SetUser(ctx, model); CacheErr != nil {
 			logrus.WithError(CacheErr).WithField("user_id", userID).Warn("failed to set user in Cache")
 		}
 	}(&userModel)

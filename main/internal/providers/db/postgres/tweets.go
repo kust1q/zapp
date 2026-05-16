@@ -27,17 +27,17 @@ func (pg *PostgresDB) CreateTweet(ctx context.Context, tweet *entity.Tweet) (*en
 	}
 	tweetModel.ID = id
 	go func(m *models.Tweet) {
-		cntx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if cErr := pg.Cache.SetTweet(cntx, m); cErr != nil {
+		if cErr := pg.Cache.SetTweet(ctx, m); cErr != nil {
 			logrus.WithError(cErr).Warnf("set tweet to Cache failed")
 		}
 
 		if m.ParentTweetID != nil {
-			if cErr := pg.Cache.InvalidateReplies(cntx, *m.ParentTweetID); cErr != nil {
+			if cErr := pg.Cache.InvalidateReplies(ctx, *m.ParentTweetID); cErr != nil {
 				logrus.WithError(cErr).Warnf("invalidate Cached replies failed")
 			}
-			if cErr := pg.Cache.InvalidateTweetCounters(cntx, *m.ParentTweetID); cErr != nil {
+			if cErr := pg.Cache.InvalidateTweetCounters(ctx, *m.ParentTweetID); cErr != nil {
 				logrus.WithError(cErr).Warnf("invalidate Cached counters failed")
 			}
 		}
@@ -62,12 +62,12 @@ func (pg *PostgresDB) CreateTweetTx(ctx context.Context, tx *sql.Tx, tweet *enti
 
 	go func(m *models.Tweet) {
 		if m.ParentTweetID != nil {
-			cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
-			if cErr := pg.Cache.InvalidateReplies(cntx, *m.ParentTweetID); cErr != nil {
+			if cErr := pg.Cache.InvalidateReplies(ctx, *m.ParentTweetID); cErr != nil {
 				logrus.WithError(cErr).Warnf("invalidate Cached replies failed")
 			}
-			if cErr := pg.Cache.InvalidateTweetCounters(cntx, *m.ParentTweetID); cErr != nil {
+			if cErr := pg.Cache.InvalidateTweetCounters(ctx, *m.ParentTweetID); cErr != nil {
 				logrus.WithError(cErr).Warnf("invalidate Cached counters failed")
 			}
 		}
@@ -98,9 +98,9 @@ func (pg *PostgresDB) GetTweetById(ctx context.Context, tweetID int) (*entity.Tw
 	}
 
 	go func(m *models.Tweet) {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if cErr := pg.Cache.SetTweet(cntx, m); cErr != nil {
+		if cErr := pg.Cache.SetTweet(ctx, m); cErr != nil {
 			logrus.WithError(cErr).Warnf("set tweet to Cache failed")
 		}
 	}(&tweetModel)
@@ -120,9 +120,9 @@ func (pg *PostgresDB) UpdateTweet(ctx context.Context, tweet *entity.Tweet) (*en
 	tweet.UpdatedAt = updatedAt
 
 	go func(tweetID int) {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		cErr := pg.Cache.InvalidateTweet(cntx, tweetID)
+		cErr := pg.Cache.InvalidateTweet(ctx, tweetID)
 		if cErr != nil {
 			logrus.WithError(cErr).Warn("invalidate tweet in Cache failed")
 		}
@@ -147,9 +147,9 @@ func (pg *PostgresDB) DeleteTweet(ctx context.Context, userID, tweetID int) erro
 		return errs.ErrTweetNotFound
 	}
 	go func(tweetID int) {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		cErr := pg.Cache.InvalidateTweet(cntx, tweetID)
+		cErr := pg.Cache.InvalidateTweet(ctx, tweetID)
 		if cErr != nil {
 			logrus.WithError(cErr).Warn("invalidate tweet in Cache failed")
 		}
@@ -175,9 +175,9 @@ func (pg *PostgresDB) LikeTweet(ctx context.Context, userID, tweetID int) error 
 	}
 
 	go func(tweetID int) {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		cErr := pg.Cache.InvalidateTweetLikers(cntx, tweetID)
+		cErr := pg.Cache.InvalidateTweetLikers(ctx, tweetID)
 		if cErr != nil {
 			logrus.WithError(cErr).Warn("invalidate tweet in Cache failed")
 		}
@@ -204,9 +204,9 @@ func (pg *PostgresDB) UnLikeTweet(ctx context.Context, userID, tweetID int) erro
 	}
 
 	go func(tweetID int) {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		cErr := pg.Cache.InvalidateTweetLikers(cntx, tweetID)
+		cErr := pg.Cache.InvalidateTweetLikers(ctx, tweetID)
 		if cErr != nil {
 			logrus.WithError(cErr).Warn("invalidate tweet in Cache failed")
 		}
@@ -291,17 +291,17 @@ func (pg *PostgresDB) GetRepliesToTweet(ctx context.Context, parentTweetID, limi
 	}
 
 	go func(tweetModels []models.Tweet) {
-		cntx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		var idList []int
 		for _, t := range tweetModels {
 			idList = append(idList, t.ID)
-			cErr := pg.Cache.SetTweet(cntx, &t)
+			cErr := pg.Cache.SetTweet(ctx, &t)
 			if cErr != nil {
 				logrus.WithError(cErr).Warnf("set tweet to Cache failed")
 			}
 		}
-		cErr := pg.Cache.SetReplyIDs(cntx, parentTweetID, idList)
+		cErr := pg.Cache.SetReplyIDs(ctx, parentTweetID, idList)
 		if cErr != nil {
 			logrus.WithError(cErr).Warnf("set reply ids to Cache failed")
 		}
@@ -350,16 +350,16 @@ func (pg *PostgresDB) GetTweetsAndRetweetsByUsername(ctx context.Context, userna
 	}
 
 	go func(list []models.Tweet) {
-		cntx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		idList := make([]int, 0, len(list))
 		for _, t := range list {
 			idList = append(idList, t.ID)
-			if cErr := pg.Cache.SetTweet(cntx, &t); cErr != nil {
+			if cErr := pg.Cache.SetTweet(ctx, &t); cErr != nil {
 				logrus.WithError(cErr).Warnf("set tweet to Cache failed")
 			}
 		}
-		if cErr := pg.Cache.SetUserTweetIDs(cntx, username, idList); cErr != nil {
+		if cErr := pg.Cache.SetUserTweetIDs(ctx, username, idList); cErr != nil {
 			logrus.WithError(cErr).Warnf("set user tweets ids to Cache failed")
 		}
 	}(tweetModels)
@@ -395,9 +395,9 @@ func (pg *PostgresDB) GetCounts(ctx context.Context, tweetID int) (*entity.Count
 	}
 
 	go func(id int, m *models.Counters) {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		if cErr := pg.Cache.SetTweetCounters(cntx, id, m); cErr != nil {
+		if cErr := pg.Cache.SetTweetCounters(ctx, id, m); cErr != nil {
 			logrus.WithError(cErr).Warn("set tweet counters to Cache failed")
 		}
 	}(tweetID, countersModel)
@@ -450,10 +450,10 @@ func (pg *PostgresDB) GetLikes(ctx context.Context, tweetID, limit, offset int) 
 	}
 
 	go func() {
-		cntx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		if cErr := pg.Cache.SetTweetLikerIDs(cntx, tweetID, ids); cErr != nil {
+		if cErr := pg.Cache.SetTweetLikerIDs(ctx, tweetID, ids); cErr != nil {
 			logrus.WithError(cErr).Warn("set tweet likers to cache failed")
 		}
 	}()
