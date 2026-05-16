@@ -12,12 +12,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (s *service) SignOut(ctx context.Context, refreshToken string) error {
+func (s *service) SignOut(ctx context.Context, req *entity.Refresh) error {
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	refreshToken = strings.TrimSpace(refreshToken)
+	refreshToken := strings.TrimSpace(req.Refresh)
 
 	if err := s.tokens.RemoveRefresh(ctx, refreshToken); err != nil {
 		if errors.Is(err, errs.ErrTokenNotFound) {

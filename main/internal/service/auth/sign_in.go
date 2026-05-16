@@ -23,7 +23,7 @@ type AccessClaims struct {
 	jwt.RegisteredClaims
 }
 
-func (s *service) SignIn(ctx context.Context, req *entity.SignIn) (*entity.Tokens, error) {
+func (s *service) SignIn(ctx context.Context, req *entity.Credential) (*entity.Tokens, error) {
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
