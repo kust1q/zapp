@@ -192,7 +192,6 @@ func (c *cache) InvalidateTweetCounters(ctx context.Context, tweetID int) error 
 	return c.client.Del(ctx, fmt.Sprintf("%s%d", countersCachePrefix, tweetID)).Err()
 }
 
-// User
 func (c *cache) SetUser(ctx context.Context, user *models.User) error {
 	userData, err := json.Marshal(user)
 	if err != nil {

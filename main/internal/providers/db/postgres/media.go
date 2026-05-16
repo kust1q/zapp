@@ -12,7 +12,6 @@ import (
 	"github.com/kust1q/Zapp/main/internal/providers/db/models"
 )
 
-// UpsertByTweetIdTx
 func (pg *PostgresDB) UpsertByTweetIdTx(ctx context.Context, tx *sql.Tx, media *entity.TweetMedia) (*entity.TweetMedia, error) {
 	mediaModel := conv.FromDomainToTweetMediaModel(media)
 	if mediaModel == nil {
